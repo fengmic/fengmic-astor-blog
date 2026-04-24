@@ -1,0 +1,160 @@
+---
+import { getCollection } from 'astro:content';
+import MainLayout from '../layouts/MainLayout.astro';
+import Navbar from '../components/Navbar.astro';
+import Sidebar from '../components/Sidebar.astro';
+import RightSidebar from '../components/RightSidebar.astro';
+import BackgroundLayer from '../components/BackgroundLayer.astro';
+import PostCard from '../components/PostCard.astro';
+import { getTopTags, sortPostsByDate } from '../utils/blog';
+import configData from '../data/config.json';
+import carouselData from '../data/carousel.json';
+import quotesData from '../data/quotes.json';
+
+const posts = sortPostsByDate(await getCollection('posts'));
+const topTags = getTopTags(posts, 9);
+const userInfo = configData.userInfo;
+const images = carouselData.images || [];
+const quotes = quotesData.quotes || [];
+---
+
+<MainLayout title="首页 | 楓念的博客" description="博客文章列表页">
+  <BackgroundLayer />
+  <Navbar currentPath="/home" />
+
+  <main class="page-wrap three-column" id="main-content">
+    <div class="left-col sticky-col">
+      <Sidebar userInfo={userInfo} />
+    </div>
+
+    <section class="center-col">
+      <article class="glass-panel quote-panel" id="quote-panel" aria-live="polite">{quotes[0] || '每篇文章都应该有光。'}</article>
+      <div class="result-bar" id="result-bar" role="status" aria-live="polite"></div>
+
+      <div id="post-list" class="post-list">
+        {posts.map((post) => <PostCard post={post} />)}
+      </div>
+
+      <p id="empty-tips" class="glass-panel empty-tips hidden" role="alert">没有匹配的文章</p>
+    </section>
+
+    <div class="right-col sticky-col">
+      <RightSidebar images={images} tags={topTags} />
+    </div>
+  </main>
+
+  <script define:vars={{ quotes }} is:inline>
+    const searchInput = document.getElementById('search-input');
+    const searchForm = document.getElementById('search-form');
+    const cards = [...document.querySelectorAll('[data-post-card]')];
+    const tagButtons = [...document.querySelectorAll('[data-tag-filter]')];
+    const resultBar = document.getElementById('result-bar');
+    const emptyTips = document.getElementById('empty-tips');
+    const quotePanel = document.getElementById('quote-panel');
+
+    let selectedTag = '';
+    let keyword = '';
+    let debounceTimer = null;
+
+    function getQueryParams() {
+      const p = new URLSearchParams(window.location.search);
+      return { q: p.get('q') || '', tag: p.get('tag') || '' };
+    }
+
+    function setQueryParams(q, tag) {
+      const p = new URLSearchParams();
+      if (q) p.set('q', q);
+      if (tag) p.set('tag', tag);
+      const qs = p.toString();
+      const url = qs ? '?' + qs : window.location.pathname;
+      window.history.replaceState(null, '', url);
+    }
+
+    const render = () => {
+      let visible = 0;
+
+      cards.forEach((card) => {
+        const tags = card.getAttribute('data-tags') || '';
+        const tagList = tags ? tags.split('|') : [];
+        const text = card.getAttribute('data-search') || '';
+        const hitTag = !selectedTag || tagList.includes(selectedTag.toLowerCase());
+        const hitKeyword = !keyword || text.includes(keyword.toLowerCase());
+        const show = hitTag && hitKeyword;
+
+        card.classList.toggle('hidden', !show);
+        if (show) visible += 1;
+      });
+
+      if (resultBar) {
+        resultBar.textContent = selectedTag || keyword
+          ? `当前筛选：${selectedTag ? `#${selectedTag}` : ''} ${keyword ? `关键词"${keyword}"` : ''}，共 ${visible} 篇`
+          : '';
+      }
+
+      if (emptyTips) {
+        emptyTips.classList.toggle('hidden', visible > 0);
+      }
+
+      setQueryParams(keyword, selectedTag);
+    };
+
+    // Debounced search input
+    if (searchInput) {
+      searchInput.addEventListener('input', () => {
+        clearTimeout(debounceTimer);
+        debounceTimer = setTimeout(() => {
+          keyword = searchInput.value.trim();
+          render();
+        }, 300);
+      });
+    }
+
+    // Search form submit (no debounce)
+    if (searchForm) {
+      searchForm.addEventListener('submit', (event) => {
+        event.preventDefault();
+        clearTimeout(debounceTimer);
+        keyword = searchInput?.value?.trim() || '';
+        render();
+      });
+    }
+
+    // Tag filter
+    tagButtons.forEach((btn) => {
+      btn.addEventListener('click', () => {
+        const tag = btn.getAttribute('data-tag-filter') || '';
+        selectedTag = selectedTag === tag ? '' : tag;
+        tagButtons.forEach((node) => node.classList.remove('active'));
+        if (selectedTag) btn.classList.add('active');
+        render();
+      });
+    });
+
+    // Initialize from URL query params
+    const initParams = getQueryParams();
+    if (initParams.q) {
+      keyword = initParams.q;
+      if (searchInput) searchInput.value = keyword;
+    }
+    if (initParams.tag) {
+      selectedTag = initParams.tag;
+      tagButtons.forEach((btn) => {
+        if (btn.getAttribute('data-tag-filter') === selectedTag) {
+          btn.classList.add('active');
+        }
+      });
+    }
+    if (initParams.q || initParams.tag) {
+      render();
+    }
+
+    // Rotating quotes
+    if (quotePanel && Array.isArray(quotes) && quotes.length > 1) {
+      let idx = 0;
+      setInterval(() => {
+        idx = (idx + 1) % quotes.length;
+        quotePanel.textContent = quotes[idx];
+      }, 7000);
+    }
+  </script>
+</MainLayout>

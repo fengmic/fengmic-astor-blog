@@ -1,0 +1,26 @@
+{
+  "userInfo": {
+    "name": "楓念",
+    "avatar": "https://s1.imagehub.cc/images/2025/02/01/c03ac2195ab05a0ef1ffda68226ccfc2.th.jpg",
+    "bio": "普通的二次元。喜欢摆弄一些自己感兴趣的新技术···",
+    "email": "fengmic103@163.com",
+    "github": "github.com/fengmic",
+    "motto": "L做一个普通人T一个脱离高级趣味D喜欢发呆的二刺螈~"
+  },
+  "theme": {
+    "primaryColor": "#FFB7D5",
+    "secondaryColor": "#FFC9E0",
+    "backgroundColor": "#FFF5F9"
+  },
+  "effects": {
+    "sakura": true,
+    "snow": false,
+    "stars": false
+  },
+  "background": {
+    "imageUrl": "https://s1.imagehub.cc/images/2024/10/02/0dd8393c1808f41f08d2708ecdca8160.jpg",
+    "opacity": 0.3,
+    "blur": 5,
+    "overlay": true
+  }
+}

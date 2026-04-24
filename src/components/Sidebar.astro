@@ -1,0 +1,46 @@
+---
+interface UserInfo {
+  name: string;
+  avatar: string;
+  bio: string;
+  email?: string;
+  qq?: string;
+  github?: string;
+  motto?: string;
+}
+
+const { userInfo } = Astro.props as { userInfo: UserInfo };
+---
+
+<aside class="glass-panel sidebar" aria-label="个人信息">
+  <div class="avatar-wrap">
+    {
+      userInfo.avatar?.startsWith('http') ? (
+        <img src={userInfo.avatar} alt={`${userInfo.name} 的头像`} loading="lazy" width="110" height="110" decoding="async" />
+      ) : (
+        <div class="avatar-emoji" role="img" aria-label={userInfo.name}>{userInfo.avatar || '🌸'}</div>
+      )
+    }
+  </div>
+
+  <h2>{userInfo.name}</h2>
+  <p class="bio">{userInfo.bio}</p>
+
+  <div class="split-line" aria-hidden="true"></div>
+
+  <div class="info-list">
+    {userInfo.email && <p>📧 <a href={`mailto:${userInfo.email}`}>{userInfo.email}</a></p>}
+    {userInfo.qq && <p>💬 {userInfo.qq}</p>}
+    {userInfo.github && (
+      <p>
+        🐙 <a href={userInfo.github.startsWith('http') ? userInfo.github : `https://${userInfo.github}`} target="_blank" rel="noreferrer noopener">{userInfo.github}</a>
+      </p>
+    )}
+  </div>
+
+  {userInfo.motto && (
+    <blockquote>
+      {userInfo.motto}
+    </blockquote>
+  )}
+</aside>

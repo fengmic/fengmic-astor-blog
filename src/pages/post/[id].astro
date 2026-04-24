@@ -1,0 +1,55 @@
+---
+import { getCollection } from 'astro:content';
+import { render } from 'astro:content';
+import { format } from 'date-fns';
+import { zhCN } from 'date-fns/locale';
+import MainLayout from '../../layouts/MainLayout.astro';
+import Navbar from '../../components/Navbar.astro';
+import BackgroundLayer from '../../components/BackgroundLayer.astro';
+import { getPostSlug } from '../../utils/blog';
+
+export async function getStaticPaths() {
+  const posts = await getCollection('posts');
+  return posts.map((post) => ({
+    params: { id: getPostSlug(post) },
+    props: { post }
+  }));
+}
+
+const { post } = Astro.props;
+const { Content } = await render(post);
+const postUrl = new URL(`/post/${getPostSlug(post)}`, Astro.site).href;
+const postDate = format(post.data.date, 'yyyy-MM-dd');
+---
+
+<MainLayout
+  title={`${post.data.title} | 楓念的博客`}
+  description={post.data.excerpt}
+  canonicalURL={postUrl}
+  type="article"
+  publishedDate={postDate}
+>
+  <BackgroundLayer />
+  <Navbar currentPath="" />
+
+  <main class="page-wrap post-wrap" id="main-content">
+    <article class="glass-panel post-detail" itemscope itemtype="https://schema.org/Article">
+      <h1 itemprop="headline">{post.data.title}</h1>
+
+      <div class="post-meta">
+        <span itemprop="author" itemscope itemtype="https://schema.org/Person">
+          👤 <span itemprop="name">{post.data.author}</span>
+        </span>
+        <span>📅 <time datetime={postDate} itemprop="datePublished">{format(post.data.date, 'yyyy年MM月dd日', { locale: zhCN })}</time></span>
+      </div>
+
+      <div class="post-tags">
+        {post.data.tags.map((tag) => <span itemprop="keywords">#{tag}</span>)}
+      </div>
+
+      <div class="prose-zone" itemprop="articleBody">
+        <Content />
+      </div>
+    </article>
+  </main>
+</MainLayout>

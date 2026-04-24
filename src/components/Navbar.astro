@@ -1,0 +1,40 @@
+---
+const { currentPath = '/home' } = Astro.props;
+
+const navItems = [
+  { href: '/home', label: '首页' },
+  { href: '/category', label: '分类' },
+  { href: '/album', label: '相册' }
+];
+---
+
+<header class="navbar-wrap" role="banner">
+  <nav class="navbar glass-panel" aria-label="主导航">
+    <a class="brand" href="/home" aria-label="返回首页">楓念的博客</a>
+
+    <form id="search-form" class="search-form" role="search" aria-label="搜索文章">
+      <input
+        id="search-input"
+        type="search"
+        placeholder="搜索标题、摘要、标签..."
+        aria-label="搜索关键词"
+        autocomplete="off"
+      />
+      <button type="submit" aria-label="执行搜索">搜索</button>
+    </form>
+
+    <div class="menu-links" role="navigation" aria-label="页面导航">
+      {
+        navItems.map((item) => (
+          <a
+            href={item.href}
+            class={currentPath === item.href ? 'active' : ''}
+            aria-current={currentPath === item.href ? 'page' : undefined}
+          >
+            {item.label}
+          </a>
+        ))
+      }
+    </div>
+  </nav>
+</header>

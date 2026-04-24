@@ -1,0 +1,59 @@
+<div class="floating-toolbar" role="toolbar" aria-label="网站设置">
+  <!-- Theme toggle -->
+  <button
+    id="btn-theme"
+    class="float-btn"
+    aria-label="切换白天黑夜模式"
+    title="切换白天/黑夜模式"
+  >☀️</button>
+
+  <!-- Effects cycle toggle -->
+  <button
+    id="btn-effect"
+    class="float-btn"
+    aria-label="切换特效：关闭／樱花／雪花／星星"
+    title="特效：关闭"
+  >🎆</button>
+</div>
+
+<script is:inline>
+  function updateThemeUI() {
+    const theme = window.__blogThemeGet();
+    const btn = document.getElementById('btn-theme');
+    if (btn) {
+      btn.textContent = theme === 'dark' ? '🌙' : '☀️';
+      btn.setAttribute('aria-label', theme === 'dark' ? '切换为白天模式' : '切换为黑夜模式');
+      btn.setAttribute('title', theme === 'dark' ? '切换为白天模式' : '切换为黑夜模式');
+    }
+  }
+
+  function updateEffectUI() {
+    const effect = window.__blogEffectGet();
+    const btn = document.getElementById('btn-effect');
+    if (!btn) return;
+    const map = {
+      '': { icon: '🎆', label: '特效：关闭', title: '点击切换特效（樱花/雪花/星星）' },
+      'sakura': { icon: '🌸', label: '特效：樱花', title: '当前：樱花飘落' },
+      'snow': { icon: '❄️', label: '特效：雪花', title: '当前：雪花纷飞' },
+      'stars': { icon: '✨', label: '特效：星星', title: '当前：星光闪烁' },
+    };
+    const s = map[effect] || map[''];
+    btn.textContent = s.icon;
+    btn.setAttribute('aria-label', s.label);
+    btn.setAttribute('title', s.title);
+  }
+
+  document.getElementById('btn-theme')?.addEventListener('click', () => {
+    window.__blogThemeToggle();
+    updateThemeUI();
+  });
+
+  document.getElementById('btn-effect')?.addEventListener('click', () => {
+    window.__blogEffectCycle();
+    updateEffectUI();
+  });
+
+  // Sync UI with actual state
+  updateThemeUI();
+  updateEffectUI();
+</script>

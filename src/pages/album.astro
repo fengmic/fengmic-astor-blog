@@ -1,0 +1,128 @@
+---
+import MainLayout from '../layouts/MainLayout.astro';
+import Navbar from '../components/Navbar.astro';
+import BackgroundLayer from '../components/BackgroundLayer.astro';
+import albumsData from '../data/albums.json';
+
+const albums = albumsData.albums || [];
+---
+
+<MainLayout title="相册 | 楓念的博客" description="楓念的相册，记录生活中的美好瞬间">
+  <BackgroundLayer />
+  <Navbar currentPath="/album" />
+
+  <main class="page-wrap single-column" id="main-content">
+    <section class="glass-panel category-head">
+      <h1>相册</h1>
+      <p>共 {albums.length} 张图片</p>
+    </section>
+
+    <section class="album-wall" id="album-wall" role="list" aria-label="相册图片列表">
+      {
+        albums.map((album, idx) => (
+          <article
+            class="glass-panel album-item"
+            role="listitem"
+            data-image={album.imageUrl}
+            data-desc={album.description}
+            data-date={album.createdAt}
+            tabindex="0"
+            aria-label={`图片：${album.description}`}
+            data-index={idx}
+          >
+            <img src={album.imageUrl} alt={album.description} loading="lazy" decoding="async" />
+            <div class="album-meta">
+              <p>{album.description}</p>
+              <time datetime={album.createdAt}>{album.createdAt}</time>
+            </div>
+          </article>
+        ))
+      }
+    </section>
+  </main>
+
+  <div id="album-modal" class="album-modal hidden" role="dialog" aria-label="图片预览" aria-hidden="true">
+    <div class="album-modal-inner glass-panel">
+      <button id="close-modal" aria-label="关闭预览">x</button>
+      <img id="modal-image" src="" alt="预览图" />
+      <p id="modal-desc"></p>
+      <time id="modal-date"></time>
+    </div>
+  </div>
+
+  <script is:inline>
+    const wall = document.getElementById('album-wall');
+    const modal = document.getElementById('album-modal');
+    const closeBtn = document.getElementById('close-modal');
+    const image = document.getElementById('modal-image');
+    const desc = document.getElementById('modal-desc');
+    const date = document.getElementById('modal-date');
+
+    function openModal(url, text, createdAt) {
+      if (image instanceof HTMLImageElement) {
+        image.src = url;
+        image.alt = text;
+      }
+      if (desc) desc.textContent = text;
+      if (date) {
+        date.textContent = createdAt;
+        date.setAttribute('datetime', createdAt);
+      }
+      modal?.classList.remove('hidden');
+      modal?.setAttribute('aria-hidden', 'false');
+      closeBtn?.focus();
+      document.body.style.overflow = 'hidden';
+    }
+
+    function closeModal() {
+      modal?.classList.add('hidden');
+      modal?.setAttribute('aria-hidden', 'true');
+      document.body.style.overflow = '';
+      const lastFocused = document.querySelector('.album-item:focus-within');
+      if (lastFocused instanceof HTMLElement) lastFocused.focus();
+    }
+
+    wall?.addEventListener('click', (event) => {
+      const target = event.target;
+      if (!(target instanceof HTMLElement)) return;
+      const item = target.closest('.album-item');
+      if (!(item instanceof HTMLElement)) return;
+
+      const url = item.dataset.image || '';
+      const text = item.dataset.desc || '';
+      const createdAt = item.dataset.date || '';
+      openModal(url, text, createdAt);
+    });
+
+    // Keyboard: Enter/Space on album item
+    wall?.addEventListener('keydown', (event) => {
+      if (!(event instanceof KeyboardEvent)) return;
+      if (event.key !== 'Enter' && event.key !== ' ') return;
+      const target = event.target;
+      if (!(target instanceof HTMLElement)) return;
+      const item = target.closest('.album-item');
+      if (!(item instanceof HTMLElement)) return;
+
+      event.preventDefault();
+      const url = item.dataset.image || '';
+      const text = item.dataset.desc || '';
+      const createdAt = item.dataset.date || '';
+      openModal(url, text, createdAt);
+    });
+
+    closeBtn?.addEventListener('click', () => closeModal());
+
+    modal?.addEventListener('click', (event) => {
+      if (event.target === modal) {
+        closeModal();
+      }
+    });
+
+    // Keyboard: ESC to close
+    document.addEventListener('keydown', (event) => {
+      if (event.key === 'Escape' && modal && !modal.classList.contains('hidden')) {
+        closeModal();
+      }
+    });
+  </script>
+</MainLayout>

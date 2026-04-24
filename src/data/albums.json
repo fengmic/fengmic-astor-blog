@@ -1,0 +1,40 @@
+{
+  "albums": [
+    {
+      "id": "1",
+      "imageUrl": "https://s1.imagehub.cc/images/2024/10/02/0dd8393c1808f41f08d2708ecdca8160.jpg",
+      "description": "赤城加贺",
+      "createdAt": "2025-12-05"
+    },
+    {
+      "id": "2",
+      "imageUrl": "https://s1.imagehub.cc/images/2025/12/09/cbed7e854b8a28078187c6ec4dfccd8a.png",
+      "description": "预言家，你没有忘了我，对吗？",
+      "createdAt": "2025-12-05"
+    },
+    {
+      "id": "3",
+      "imageUrl": "https://s1.imagehub.cc/images/2025/12/09/93fab3bde2523add610a07eac109c435.jpg",
+      "description": "MikuMikuMi~",
+      "createdAt": "2025-12-05"
+    },
+    {
+      "id": "4",
+      "imageUrl": "https://s1.imagehub.cc/images/2025/12/09/64cc8e1eb6a656f0bbca8aaf80b0afb1.png",
+      "description": "修复完Bug导致产生新Bug的我",
+      "createdAt": "2025-12-05"
+    },
+    {
+      "id": "5",
+      "imageUrl": "https://s1.imagehub.cc/images/2025/12/09/9c1812b5c4847cf1ca18d90220f752b1.jpg",
+      "description": "想屁吃（peach:桃子）",
+      "createdAt": "2025-12-05"
+    },
+    {
+      "id": "6",
+      "imageUrl": "https://s1.imagehub.cc/images/2025/12/09/56aca0229cd32ea97b111fb520c32ce2.jpg",
+      "description": "Shall I compare thee to a summer’s day?\n我想将你比作迷人的夏日，\nThou art more lovely and more temperate:\n但你却显得更为可爱温存;",
+      "createdAt": "2025-12-05"
+    }
+  ]
+}

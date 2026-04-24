@@ -1,0 +1,196 @@
+---
+import '../styles/global.css';
+import ThemeToggles from '../components/ThemeToggles.astro';
+
+interface Props {
+  title: string;
+  description?: string;
+  image?: string;
+  canonicalURL?: string;
+  type?: string;
+  publishedDate?: string;
+}
+
+const {
+  title,
+  description = '楓念的个人博客 - 记录代码、技术与二次元生活',
+  image = 'https://s1.imagehub.cc/images/2025/12/09/d0630008618c165c9bd3f9469d27dfc2.png',
+  canonicalURL = Astro.url.href,
+  type = 'website',
+  publishedDate,
+} = Astro.props as Props;
+---
+
+<!doctype html>
+<html lang="zh-CN" data-theme="light">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="color-scheme" content="light dark" />
+    <meta name="description" content={description} />
+
+    <!-- Open Graph -->
+    <meta property="og:title" content={title} />
+    <meta property="og:description" content={description} />
+    <meta property="og:image" content={image} />
+    <meta property="og:url" content={canonicalURL} />
+    <meta property="og:type" content={type} />
+    <meta property="og:site_name" content="楓念的博客" />
+    <meta property="og:locale" content="zh_CN" />
+
+    <!-- Twitter Card -->
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content={title} />
+    <meta name="twitter:description" content={description} />
+    <meta name="twitter:image" content={image} />
+
+    <!-- Canonical URL -->
+    <link rel="canonical" href={canonicalURL} />
+
+    <!-- Preconnect to external origins -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link rel="preconnect" href="https://s1.imagehub.cc" />
+
+    <!-- Favicon -->
+    <link rel="icon" type="image/png" href="https://s1.imagehub.cc/images/2025/12/09/d0630008618c165c9bd3f9469d27dfc2.png" />
+    <link rel="apple-touch-icon" href="https://s1.imagehub.cc/images/2025/12/09/d0630008618c165c9bd3f9469d27dfc2.png" />
+
+    <!-- Structured Data -->
+    {publishedDate && (
+      <script type="application/ld+json" set:html={`{
+        "@context": "https://schema.org",
+        "@type": "${type === 'article' ? 'Article' : 'WebPage'}",
+        "headline": "${title}",
+        "description": "${description}",
+        "image": "${image}",
+        "url": "${canonicalURL}",
+        ${type === 'article' ? `"datePublished": "${publishedDate}",` : ''}
+        "author": {
+          "@type": "Person",
+          "name": "楓念"
+        }
+      }`} />
+    )}
+
+    <!-- Font preload -->
+    <link rel="preload" href="https://fonts.googleapis.com/css2?family=ZCOOL+XiaoWei&family=Noto+Sans+SC:wght@400;500;700&family=JetBrains+Mono:wght@500&display=swap" as="style" />
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=ZCOOL+XiaoWei&family=Noto+Sans+SC:wght@400;500;700&family=JetBrains+Mono:wght@500&display=swap" />
+
+    <title>{title}</title>
+  </head>
+  <body>
+    <!-- Skip to content -->
+    <a class="skip-to-content" href="#main-content">跳到主要内容</a>
+
+    <slot />
+
+    <!-- Floating toolbar: theme + effects toggles -->
+    <ThemeToggles />
+
+    <script is:inline>
+      const STORAGE_THEME = 'blog-theme';
+      const STORAGE_EFFECT = 'blog-effect';
+
+      const html = document.documentElement;
+
+      // Apply stored theme immediately to prevent flash
+      const savedTheme = localStorage.getItem(STORAGE_THEME) || 'light';
+      html.setAttribute('data-theme', savedTheme);
+
+      // Apply stored effect
+      let currentEffect = localStorage.getItem(STORAGE_EFFECT) || '';
+
+      function removeEffects() {
+        document.querySelectorAll('.fx-sakura, .fx-snow, .fx-stars').forEach(el => el.remove());
+      }
+
+      function createSakura() {
+        const container = document.createElement('div');
+        container.className = 'fx-sakura';
+        container.setAttribute('aria-hidden', 'true');
+        for (let i = 0; i < 20; i++) {
+          const petal = document.createElement('span');
+          petal.style.left = Math.random() * 100 + '%';
+          petal.style.animationDelay = Math.random() * 8 + 's';
+          petal.style.animationDuration = (Math.random() * 4 + 6) + 's';
+          petal.style.fontSize = (Math.random() * 10 + 10) + 'px';
+          petal.style.opacity = Math.random() * 0.5 + 0.3;
+          petal.textContent = '🌸';
+          container.appendChild(petal);
+        }
+        document.body.appendChild(container);
+      }
+
+      function createSnow() {
+        const container = document.createElement('div');
+        container.className = 'fx-snow';
+        container.setAttribute('aria-hidden', 'true');
+        for (let i = 0; i < 30; i++) {
+          const flake = document.createElement('span');
+          flake.style.left = Math.random() * 100 + '%';
+          flake.style.animationDelay = Math.random() * 10 + 's';
+          flake.style.animationDuration = (Math.random() * 5 + 8) + 's';
+          flake.style.fontSize = (Math.random() * 8 + 6) + 'px';
+          flake.style.opacity = Math.random() * 0.4 + 0.3;
+          flake.textContent = '❄';
+          container.appendChild(flake);
+        }
+        document.body.appendChild(container);
+      }
+
+      function createStars() {
+        const container = document.createElement('div');
+        container.className = 'fx-stars';
+        container.setAttribute('aria-hidden', 'true');
+        for (let i = 0; i < 50; i++) {
+          const star = document.createElement('span');
+          star.style.left = Math.random() * 100 + '%';
+          star.style.top = Math.random() * 100 + '%';
+          star.style.animationDelay = Math.random() * 3 + 's';
+          star.style.animationDuration = (Math.random() * 2 + 1.5) + 's';
+          star.textContent = '✦';
+          container.appendChild(star);
+        }
+        document.body.appendChild(container);
+      }
+
+      function applyEffect(name) {
+        removeEffects();
+        if (name === 'sakura') createSakura();
+        else if (name === 'snow') createSnow();
+        else if (name === 'stars') createStars();
+      }
+
+      // Initialize effect on load
+      if (currentEffect) applyEffect(currentEffect);
+
+      // Expose for the toggle component
+      window.__blogEffectCycle = function() {
+        const effects = ['', 'sakura', 'snow', 'stars'];
+        const idx = effects.indexOf(currentEffect);
+        const next = effects[(idx + 1) % effects.length];
+        currentEffect = next;
+        localStorage.setItem(STORAGE_EFFECT, currentEffect);
+        applyEffect(currentEffect);
+        return currentEffect;
+      };
+
+      window.__blogEffectGet = function() {
+        return currentEffect;
+      };
+
+      window.__blogThemeToggle = function() {
+        const current = html.getAttribute('data-theme') || 'light';
+        const next = current === 'light' ? 'dark' : 'light';
+        html.setAttribute('data-theme', next);
+        localStorage.setItem(STORAGE_THEME, next);
+        return next;
+      };
+
+      window.__blogThemeGet = function() {
+        return html.getAttribute('data-theme') || 'light';
+      };
+    </script>
+  </body>
+</html>

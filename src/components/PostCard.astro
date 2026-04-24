@@ -1,0 +1,29 @@
+---
+import { format } from 'date-fns';
+import { zhCN } from 'date-fns/locale';
+import { getPostSlug, type BlogPost } from '../utils/blog';
+
+const { post } = Astro.props as { post: BlogPost };
+const postSlug = getPostSlug(post);
+---
+
+<a
+  class="post-card glass-panel"
+  href={`/post/${postSlug}`}
+  data-post-card
+  data-tags={post.data.tags.join('|').toLowerCase()}
+  data-search={`${post.data.title} ${post.data.excerpt} ${post.data.tags.join(' ')}`.toLowerCase()}
+  aria-label={`文章：${post.data.title}`}
+>
+  <h3>{post.data.title}</h3>
+  <p>{post.data.excerpt}</p>
+
+  <div class="post-meta">
+    <span>👤 {post.data.author}</span>
+    <span>📅 {format(post.data.date, 'yyyy-MM-dd', { locale: zhCN })}</span>
+  </div>
+
+  <div class="post-tags">
+    {post.data.tags.map((tag) => <span>#{tag}</span>)}
+  </div>
+</a>

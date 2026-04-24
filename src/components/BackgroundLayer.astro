@@ -1,0 +1,18 @@
+---
+import configData from '../data/config.json';
+
+const background = configData?.background;
+---
+
+{
+  background?.imageUrl && (
+    <>
+      <div
+        class="background-image"
+        style={`--bg-url:url(${background.imageUrl});--bg-opacity:${background.opacity || 0.3};--bg-blur:${background.blur || 4}px;`}
+        aria-hidden="true"
+      ></div>
+      {background.overlay && <div class="background-overlay" aria-hidden="true"></div>}
+    </>
+  )
+}
