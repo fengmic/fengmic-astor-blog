@@ -22,5 +22,8 @@
     "opacity": 0.3,
     "blur": 5,
     "overlay": true
+  },
+  "albumLayout": {
+    "columns": 3
   }
 }

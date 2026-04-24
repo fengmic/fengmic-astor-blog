@@ -536,25 +536,33 @@ img {
 
 /* ========== Album page ========== */
 .album-wall {
-  columns: 1;
-  gap: 14px;
+  position: relative;
+  min-height: 1px;
 }
 
 .album-item {
-  break-inside: avoid;
-  margin-bottom: 14px;
+  position: absolute;
+  left: 0;
+  top: 0;
   overflow: hidden;
   cursor: pointer;
   transition: transform 0.2s ease;
 }
 
 .album-item:hover {
-  transform: scale(1.01);
+  transform: translateY(-2px);
+  z-index: 2;
 }
 
 .album-item img {
   width: 100%;
   display: block;
+  aspect-ratio: 4 / 3;
+  background: rgba(255, 255, 255, 0.45);
+}
+
+.album-item img[data-loaded="true"] {
+  aspect-ratio: auto;
 }
 
 .album-meta {
@@ -842,16 +850,9 @@ img {
     gap: 10px;
   }
 
-  .album-wall {
-    columns: 2;
-  }
 }
 
 @media (max-width: 640px) {
-  .album-wall {
-    columns: 1;
-  }
-
   .page-wrap {
     padding: 12px;
   }
