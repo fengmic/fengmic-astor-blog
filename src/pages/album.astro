@@ -107,6 +107,14 @@ const TRANSPARENT_PIXEL = 'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///ywAAAA
       lazyLoaderInitialized = true;
 
       const items = Array.from(wall.querySelectorAll('.album-item')).filter((item) => item instanceof HTMLElement);
+      const configuredColumns = Math.max(1, Number(wall.dataset.columns || 3));
+      const eagerCount = Math.min(items.length, getEffectiveColumns(configuredColumns) * 2);
+
+      // Ensure first visible rows are available immediately.
+      items.slice(0, eagerCount).forEach((item) => {
+        const img = item.querySelector('img');
+        loadImageIfNeeded(img);
+      });
 
       if ('IntersectionObserver' in window) {
         lazyObserver = new IntersectionObserver((entries) => {
@@ -122,7 +130,7 @@ const TRANSPARENT_PIXEL = 'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///ywAAAA
           });
         }, {
           root: null,
-          rootMargin: '0px',
+          rootMargin: '200px 0px',
           threshold: 0.01,
         });
 
@@ -131,6 +139,17 @@ const TRANSPARENT_PIXEL = 'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///ywAAAA
         // Fallback for older browsers: eagerly load all images.
         wall.querySelectorAll('img').forEach((img) => loadImageIfNeeded(img));
       }
+
+      // Safety net: if observer does not trigger in time, load a first batch.
+      window.setTimeout(() => {
+        const loadedCount = wall.querySelectorAll('img[data-loaded="true"]').length;
+        if (loadedCount > 0) return;
+
+        items.slice(0, Math.min(items.length, 8)).forEach((item) => {
+          const img = item.querySelector('img');
+          loadImageIfNeeded(img);
+        });
+      }, 800);
     }
 
     function applyMasonryLayout() {
@@ -225,8 +244,14 @@ const TRANSPARENT_PIXEL = 'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///ywAAAA
         delete img.dataset.loading;
         scheduleMasonryLayout();
       });
-      img.addEventListener('error', () => scheduleMasonryLayout());
+      img.addEventListener('error', () => {
+        delete img.dataset.loading;
+        scheduleMasonryLayout();
+      });
     });
+
+    // Initialize lazy loader before the first layout pass.
+    initViewportLazyLoader();
 
     window.addEventListener('resize', scheduleMasonryLayout);
 

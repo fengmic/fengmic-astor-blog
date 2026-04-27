@@ -47,6 +47,11 @@ const quotes = quotesData.quotes || [];
     const searchInput = document.getElementById('search-input');
     const searchForm = document.getElementById('search-form');
     const cards = [...document.querySelectorAll('[data-post-card]')];
+    const cardMeta = cards.map((card) => ({
+      card,
+      tags: new Set((card.getAttribute('data-tags') || '').split('|').filter(Boolean)),
+      text: card.getAttribute('data-search') || '',
+    }));
     const tagButtons = [...document.querySelectorAll('[data-tag-filter]')];
     const resultBar = document.getElementById('result-bar');
     const emptyTips = document.getElementById('empty-tips');
@@ -55,6 +60,13 @@ const quotes = quotesData.quotes || [];
     let selectedTag = '';
     let keyword = '';
     let debounceTimer = null;
+    let renderRafId = 0;
+    let quoteTypeTimer = 0;
+    let quoteRotateTimer = 0;
+    const QUOTE_TYPE_SPEED = 70;
+    const QUOTE_LINE_BREAK_DELAY = 180;
+    const QUOTE_HOLD_DELAY = 2200;
+    const QUOTE_ROTATE_DELAY = 7000;
 
     function getQueryParams() {
       const p = new URLSearchParams(window.location.search);
@@ -72,16 +84,15 @@ const quotes = quotesData.quotes || [];
 
     const render = () => {
       let visible = 0;
+      const selectedTagLower = selectedTag.toLowerCase();
+      const keywordLower = keyword.toLowerCase();
 
-      cards.forEach((card) => {
-        const tags = card.getAttribute('data-tags') || '';
-        const tagList = tags ? tags.split('|') : [];
-        const text = card.getAttribute('data-search') || '';
-        const hitTag = !selectedTag || tagList.includes(selectedTag.toLowerCase());
-        const hitKeyword = !keyword || text.includes(keyword.toLowerCase());
+      cardMeta.forEach((item) => {
+        const hitTag = !selectedTagLower || item.tags.has(selectedTagLower);
+        const hitKeyword = !keywordLower || item.text.includes(keywordLower);
         const show = hitTag && hitKeyword;
 
-        card.classList.toggle('hidden', !show);
+        item.card.classList.toggle('hidden', !show);
         if (show) visible += 1;
       });
 
@@ -98,13 +109,94 @@ const quotes = quotesData.quotes || [];
       setQueryParams(keyword, selectedTag);
     };
 
+    function scheduleRender() {
+      cancelAnimationFrame(renderRafId);
+      renderRafId = requestAnimationFrame(render);
+    }
+
+    function clearQuoteTimers() {
+      clearTimeout(quoteTypeTimer);
+      clearTimeout(quoteRotateTimer);
+    }
+
+    function typeQuote(text, onDone) {
+      if (!(quotePanel instanceof HTMLElement)) return;
+
+      clearTimeout(quoteTypeTimer);
+      quotePanel.classList.add('typing');
+      quotePanel.textContent = '';
+
+      let cursor = 0;
+
+      const tick = () => {
+        if (!(quotePanel instanceof HTMLElement)) return;
+
+        if (cursor >= text.length) {
+          quotePanel.classList.remove('typing');
+          if (typeof onDone === 'function') onDone();
+          return;
+        }
+
+        const nextChar = text[cursor];
+        quotePanel.textContent += nextChar;
+        cursor += 1;
+
+        quoteTypeTimer = window.setTimeout(
+          tick,
+          nextChar === '\n' ? QUOTE_LINE_BREAK_DELAY : QUOTE_TYPE_SPEED,
+        );
+      };
+
+      tick();
+    }
+
+    function startQuoteRotation() {
+      if (!(quotePanel instanceof HTMLElement) || !Array.isArray(quotes) || quotes.length === 0) return;
+
+      const prefersReducedMotion =
+        typeof window.matchMedia === 'function' &&
+        window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+      let idx = 0;
+
+      if (prefersReducedMotion) {
+        quotePanel.classList.remove('typing');
+        quotePanel.textContent = quotes[0];
+
+        if (quotes.length > 1) {
+          const rotateStatic = () => {
+            quoteRotateTimer = window.setTimeout(() => {
+              idx = (idx + 1) % quotes.length;
+              quotePanel.textContent = quotes[idx];
+              rotateStatic();
+            }, QUOTE_ROTATE_DELAY);
+          };
+          rotateStatic();
+        }
+        return;
+      }
+
+      const play = () => {
+        typeQuote(quotes[idx], () => {
+          if (quotes.length <= 1) return;
+
+          quoteRotateTimer = window.setTimeout(() => {
+            idx = (idx + 1) % quotes.length;
+            play();
+          }, QUOTE_HOLD_DELAY);
+        });
+      };
+
+      play();
+    }
+
     // Debounced search input
     if (searchInput) {
       searchInput.addEventListener('input', () => {
         clearTimeout(debounceTimer);
         debounceTimer = setTimeout(() => {
           keyword = searchInput.value.trim();
-          render();
+          scheduleRender();
         }, 300);
       });
     }
@@ -115,7 +207,7 @@ const quotes = quotesData.quotes || [];
         event.preventDefault();
         clearTimeout(debounceTimer);
         keyword = searchInput?.value?.trim() || '';
-        render();
+        scheduleRender();
       });
     }
 
@@ -126,7 +218,7 @@ const quotes = quotesData.quotes || [];
         selectedTag = selectedTag === tag ? '' : tag;
         tagButtons.forEach((node) => node.classList.remove('active'));
         if (selectedTag) btn.classList.add('active');
-        render();
+        scheduleRender();
       });
     });
 
@@ -145,16 +237,17 @@ const quotes = quotesData.quotes || [];
       });
     }
     if (initParams.q || initParams.tag) {
-      render();
+      scheduleRender();
     }
 
-    // Rotating quotes
-    if (quotePanel && Array.isArray(quotes) && quotes.length > 1) {
-      let idx = 0;
-      setInterval(() => {
-        idx = (idx + 1) % quotes.length;
-        quotePanel.textContent = quotes[idx];
-      }, 7000);
-    }
+    // Quote rotation with typewriter effect
+    startQuoteRotation();
+
+    window.addEventListener('pagehide', () => {
+      clearQuoteTimers();
+      if (quotePanel instanceof HTMLElement) {
+        quotePanel.classList.remove('typing');
+      }
+    });
   </script>
 </MainLayout>

@@ -5,6 +5,7 @@ interface Props {
 }
 
 const { images, tags } = Astro.props as Props;
+const TRANSPARENT_PIXEL = 'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///ywAAAAAAQABAAACAUwAOw==';
 ---
 
 <aside class="right-sidebar" aria-label="侧边栏工具">
@@ -14,7 +15,14 @@ const { images, tags } = Astro.props as Props;
       {
         images.length > 0 ? (
           images.map((url, idx) => (
-            <img class={idx === 0 ? 'active' : ''} src={url} alt="轮播图片" loading="lazy" decoding="async" />
+            <img
+              class={idx === 0 ? 'active' : ''}
+              src={idx === 0 ? url : TRANSPARENT_PIXEL}
+              data-src={idx === 0 ? undefined : url}
+              alt="轮播图片"
+              loading={idx === 0 ? 'eager' : 'lazy'}
+              decoding="async"
+            />
           ))
         ) : (
           <div class="emoji-fallback" aria-hidden="true">🌸</div>
@@ -41,16 +49,64 @@ const { images, tags } = Astro.props as Props;
 
 <script is:inline>
   const carousel = document.querySelector('[data-carousel]');
-  if (carousel) {
-    const imgs = [...carousel.querySelectorAll('img')];
+  if (carousel instanceof HTMLElement) {
+    const imgs = [...carousel.querySelectorAll('img')].filter((img) => img instanceof HTMLImageElement);
     let current = 0;
-    if (imgs.length > 1) {
-      setInterval(() => {
-        imgs[current].classList.remove('active');
-        current = (current + 1) % imgs.length;
-        imgs[current].classList.add('active');
+    let timerId = 0;
+
+    function loadImageByIndex(index) {
+      const img = imgs[index];
+      if (!(img instanceof HTMLImageElement)) return;
+      if (!img.dataset.src) return;
+      img.src = img.dataset.src;
+      delete img.dataset.src;
+    }
+
+    function setActive(index) {
+      imgs[current]?.classList.remove('active');
+      current = index;
+      loadImageByIndex(current);
+      imgs[current]?.classList.add('active');
+
+      // Preload next frame so transition appears smooth.
+      const next = (current + 1) % imgs.length;
+      loadImageByIndex(next);
+    }
+
+    function startCarousel() {
+      if (timerId || imgs.length <= 1) return;
+      timerId = window.setInterval(() => {
+        const next = (current + 1) % imgs.length;
+        setActive(next);
       }, 3000);
     }
+
+    function stopCarousel() {
+      if (!timerId) return;
+      clearInterval(timerId);
+      timerId = 0;
+    }
+
+    if (imgs.length > 0) {
+      setActive(0);
+    }
+
+    if ('IntersectionObserver' in window) {
+      const observer = new IntersectionObserver((entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) startCarousel();
+          else stopCarousel();
+        });
+      }, { threshold: 0.15 });
+      observer.observe(carousel);
+    } else {
+      startCarousel();
+    }
+
+    document.addEventListener('visibilitychange', () => {
+      if (document.hidden) stopCarousel();
+      else startCarousel();
+    });
   }
 
   const calendarRoot = document.getElementById('calendar-root');

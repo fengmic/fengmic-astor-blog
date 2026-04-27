@@ -3,18 +3,43 @@ import MainLayout from '../layouts/MainLayout.astro';
 ---
 
 <MainLayout title="欢迎来到楓念的博客">
-  <main class="splash-screen">
-    <div class="starfield"></div>
-    <div class="splash-content">
-      <h1>欢迎来到 楓念 的博客</h1>
-      <p>Welcome to Fengmic's Blog</p>
-      <p class="splash-hint">正在跳转…</p>
+  <main class="entry-gate" id="main-content" aria-label="进入博客开屏动画">
+    <iframe
+      id="entry-home-preview"
+      class="entry-home-preview"
+      src="/home"
+      title="主页预加载"
+      tabindex="-1"
+      aria-hidden="true"
+      loading="eager"
+    ></iframe>
+
+    <div class="entry-overlay" aria-hidden="true">
+      <div class="entry-copy">
+        <p class="entry-line entry-line-primary">楓念的博客</p>
+        <p class="entry-line entry-line-secondary">这是一个兴趣使然的小站</p>
+      </div>
     </div>
   </main>
 
   <script is:inline>
-    setTimeout(() => {
-      window.location.href = '/home';
-    }, 1500);
+    const HOME_URL = '/home';
+    const ANIMATION_DURATION = 3000;
+    let redirected = false;
+
+    // Warm up navigation resources in parallel with the opening animation.
+    const prefetch = document.createElement('link');
+    prefetch.rel = 'prefetch';
+    prefetch.as = 'document';
+    prefetch.href = HOME_URL;
+    document.head.appendChild(prefetch);
+
+    function goHome() {
+      if (redirected) return;
+      redirected = true;
+      window.location.replace(HOME_URL);
+    }
+
+    window.setTimeout(goHome, ANIMATION_DURATION);
   </script>
 </MainLayout>
