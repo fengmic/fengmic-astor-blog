@@ -7,7 +7,15 @@
     "dev": "astro dev",
     "build": "astro build",
     "preview": "astro preview",
-    "check": "astro check"
+    "check": "astro check",
+    "dev:workers": "wrangler dev --local",
+    "db:create": "wrangler d1 create astor-blog",
+    "db:create-dev": "wrangler d1 create astor-blog-dev --local",
+    "db:migrate": "wrangler d1 execute astor-blog --file=./migrations/0001_init_comments_table.sql",
+    "db:migrate-dev": "wrangler d1 execute astor-blog-dev --file=./migrations/0001_init_comments_table.sql --local",
+    "db:shell": "wrangler d1 shell astor-blog-dev --local",
+    "deploy": "wrangler pages deploy ./dist",
+    "deploy:prod": "npm run build && wrangler pages deploy ./dist --project-name=astor-blog"
   },
   "dependencies": {
     "@astrojs/check": "^0.9.8",
@@ -15,6 +23,7 @@
     "date-fns": "^4.1.0"
   },
   "devDependencies": {
-    "typescript": "^5.9.3"
+    "typescript": "^5.9.3",
+    "wrangler": "^3.0.0"
   }
 }

@@ -6,6 +6,8 @@ import { zhCN } from 'date-fns/locale';
 import MainLayout from '../../layouts/MainLayout.astro';
 import Navbar from '../../components/Navbar.astro';
 import BackgroundLayer from '../../components/BackgroundLayer.astro';
+import CommentForm from '../../components/CommentForm.astro';
+import CommentList from '../../components/CommentList.astro';
 import { getPostSlug } from '../../utils/blog';
 
 export async function getStaticPaths() {
@@ -51,5 +53,11 @@ const postDate = format(post.data.date, 'yyyy-MM-dd');
         <Content />
       </div>
     </article>
+
+    <!-- Comments Section -->
+    <div class="comments-section">
+      <CommentList postId={getPostSlug(post)} />
+      <CommentForm postId={getPostSlug(post)} />
+    </div>
   </main>
 </MainLayout>

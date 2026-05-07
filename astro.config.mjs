@@ -22,6 +22,7 @@ function rehypeImagePerformance() {
 
 export default defineConfig({
   site: 'https://fengmic.pages.dev/',
+  output: 'static',
   markdown: {
     shikiConfig: {
       theme: 'github-light'
