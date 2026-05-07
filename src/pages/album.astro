@@ -8,6 +8,16 @@ import configData from '../data/config.json';
 const albums = albumsData.albums || [];
 const albumColumns = Math.max(1, Math.floor(Number(configData?.albumLayout?.columns) || 3));
 const TRANSPARENT_PIXEL = 'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///ywAAAAAAQABAAACAUwAOw==';
+
+function getAlbumThumbnailUrl(album) {
+  if (album?.thumbnailUrl) return album.thumbnailUrl;
+
+  if (typeof album?.imageUrl === 'string') {
+    return album.imageUrl.replace(/(\.[a-zA-Z0-9]+)(?=\?|$)/, '.th$1');
+  }
+
+  return '';
+}
 ---
 
 <MainLayout title="相册 | 楓念的博客" description="楓念的相册，记录生活中的美好瞬间">
@@ -34,6 +44,7 @@ const TRANSPARENT_PIXEL = 'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///ywAAAA
             class="glass-panel album-item"
             role="listitem"
             data-image={album.imageUrl}
+            data-thumb={getAlbumThumbnailUrl(album)}
             data-desc={album.description}
             data-date={album.createdAt}
             tabindex="0"
@@ -41,7 +52,7 @@ const TRANSPARENT_PIXEL = 'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///ywAAAA
           >
             <img
               src={TRANSPARENT_PIXEL}
-              data-src={album.imageUrl}
+              data-src={getAlbumThumbnailUrl(album)}
               data-loaded="false"
               alt={album.description}
               decoding="async"
@@ -237,6 +248,7 @@ const TRANSPARENT_PIXEL = 'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///ywAAAA
       if (!(item instanceof HTMLElement)) return;
 
       const url = item.dataset.image || '';
+      const thumb = item.dataset.thumb || '';
       const text = item.dataset.desc || '';
       const createdAt = item.dataset.date || '';
       openModal(url, text, createdAt);

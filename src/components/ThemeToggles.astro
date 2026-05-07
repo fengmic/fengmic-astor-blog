@@ -6,7 +6,6 @@
   title="当前白天模式，点击切换夜间"
 >
   <span class="theme-toggle-icon" aria-hidden="true">☀️</span>
-  <span class="theme-toggle-text" aria-hidden="true">主题</span>
 </button>
 
 <script is:inline>
@@ -25,7 +24,15 @@
     if (icon) icon.textContent = isDark ? '🌙' : '☀️';
   }
 
-  document.getElementById('btn-theme')?.addEventListener('click', () => {
+  document.getElementById('btn-theme')?.addEventListener('click', (event) => {
+    const btn = event.currentTarget;
+    if (btn instanceof HTMLElement) {
+      btn.classList.add('is-toggling');
+      window.setTimeout(() => {
+        btn.classList.remove('is-toggling');
+      }, 260);
+    }
+
     window.__blogThemeToggle();
     updateThemeUI();
   });

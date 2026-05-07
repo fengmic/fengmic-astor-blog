@@ -1,45 +1,19 @@
 ---
-import MainLayout from '../layouts/MainLayout.astro';
+const HOME_URL = '/home';
 ---
 
-<MainLayout title="欢迎来到楓念的博客">
-  <main class="entry-gate" id="main-content" aria-label="进入博客开屏动画">
-    <iframe
-      id="entry-home-preview"
-      class="entry-home-preview"
-      src="/home"
-      title="主页预加载"
-      tabindex="-1"
-      aria-hidden="true"
-      loading="eager"
-    ></iframe>
-
-    <div class="entry-overlay" aria-hidden="true">
-      <div class="entry-copy">
-        <p class="entry-line entry-line-primary">楓念的博客</p>
-        <p class="entry-line entry-line-secondary">这是一个兴趣使然的小站</p>
-      </div>
-    </div>
-  </main>
-
-  <script is:inline>
-    const HOME_URL = '/home';
-    const ANIMATION_DURATION = 3000;
-    let redirected = false;
-
-    // Warm up navigation resources in parallel with the opening animation.
-    const prefetch = document.createElement('link');
-    prefetch.rel = 'prefetch';
-    prefetch.as = 'document';
-    prefetch.href = HOME_URL;
-    document.head.appendChild(prefetch);
-
-    function goHome() {
-      if (redirected) return;
-      redirected = true;
-      window.location.replace(HOME_URL);
-    }
-
-    window.setTimeout(goHome, ANIMATION_DURATION);
-  </script>
-</MainLayout>
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta http-equiv="refresh" content={`0; url=${HOME_URL}`} />
+    <meta name="robots" content="noindex,follow" />
+    <link rel="canonical" href={HOME_URL} />
+    <title>楓念的博客</title>
+    <script is:inline>
+      window.location.replace('/home');
+    </script>
+  </head>
+  <body></body>
+</html>
