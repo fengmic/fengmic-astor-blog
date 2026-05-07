@@ -53,6 +53,11 @@ const TRANSPARENT_PIXEL = 'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///ywAAAA
     const imgs = [...carousel.querySelectorAll('img')].filter((img) => img instanceof HTMLImageElement);
     let current = 0;
     let timerId = 0;
+    let observer = null;
+    const onVisibilityChange = () => {
+      if (document.hidden) stopCarousel();
+      else startCarousel();
+    };
 
     function loadImageByIndex(index) {
       const img = imgs[index];
@@ -92,7 +97,7 @@ const TRANSPARENT_PIXEL = 'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///ywAAAA
     }
 
     if ('IntersectionObserver' in window) {
-      const observer = new IntersectionObserver((entries) => {
+      observer = new IntersectionObserver((entries) => {
         entries.forEach((entry) => {
           if (entry.isIntersecting) startCarousel();
           else stopCarousel();
@@ -103,9 +108,12 @@ const TRANSPARENT_PIXEL = 'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///ywAAAA
       startCarousel();
     }
 
-    document.addEventListener('visibilitychange', () => {
-      if (document.hidden) stopCarousel();
-      else startCarousel();
+    document.addEventListener('visibilitychange', onVisibilityChange);
+
+    window.addEventListener('pagehide', () => {
+      stopCarousel();
+      observer?.disconnect();
+      document.removeEventListener('visibilitychange', onVisibilityChange);
     });
   }
 

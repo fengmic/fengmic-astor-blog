@@ -95,12 +95,11 @@ const {
 
     <slot />
 
-    <!-- Floating toolbar: theme + effects toggles -->
+    <!-- Theme toggle -->
     <ThemeToggles />
 
     <script is:inline>
       const STORAGE_THEME = 'blog-theme';
-      const STORAGE_EFFECT = 'blog-effect';
 
       const html = document.documentElement;
 
@@ -124,12 +123,6 @@ const {
       // Apply stored theme immediately to prevent flash
       const savedTheme = safeGetStorage(STORAGE_THEME, 'light');
       html.setAttribute('data-theme', savedTheme);
-
-      // Apply stored effect (sakura only)
-      let currentEffect = safeGetStorage(STORAGE_EFFECT, '');
-      if (currentEffect !== '' && currentEffect !== 'sakura') {
-        currentEffect = '';
-      }
 
       function removeEffects() {
         document.querySelectorAll('.fx-sakura').forEach((el) => {
@@ -183,7 +176,7 @@ const {
         const POINTER_FORCE = prefersReducedMotion ? 0.2 : 0.45;
 
         function makePetal(spawnAtTop = true) {
-          const size = 7 + Math.random() * 8;
+          const size = 4.8 + Math.random() * 4.2;
           return {
             x: Math.random() * width,
             y: spawnAtTop ? -24 - Math.random() * height * 0.35 : Math.random() * height * 0.55,
@@ -195,7 +188,8 @@ const {
             spin: (Math.random() - 0.5) * 0.04,
             sway: 0.25 + Math.random() * 0.9,
             phase: Math.random() * Math.PI * 2,
-            color: `hsla(${330 + Math.random() * 16}, ${78 + Math.random() * 12}%, ${76 + Math.random() * 10}%, 1)`,
+            color: `hsla(${38 + Math.random() * 10}, ${16 + Math.random() * 10}%, ${92 + Math.random() * 4}%, 1)`,
+            center: `hsla(${46 + Math.random() * 8}, ${42 + Math.random() * 8}%, ${82 + Math.random() * 6}%, 1)`,
             settled: false,
           };
         }
@@ -207,33 +201,36 @@ const {
           ctx.globalAlpha = petal.alpha;
 
           ctx.fillStyle = petal.color;
+          ctx.shadowColor = 'rgba(255, 248, 236, 0.5)';
+          ctx.shadowBlur = 8;
           ctx.beginPath();
-          ctx.moveTo(0, -petal.size * 0.95);
+          ctx.moveTo(0, -petal.size * 0.88);
           ctx.bezierCurveTo(
-            petal.size * 0.82,
-            -petal.size * 0.5,
-            petal.size * 0.86,
-            petal.size * 0.62,
+            petal.size * 0.8,
+            -petal.size * 0.44,
+            petal.size * 0.92,
+            petal.size * 0.56,
             0,
-            petal.size,
+            petal.size * 0.96,
           );
           ctx.bezierCurveTo(
-            -petal.size * 0.86,
-            petal.size * 0.62,
-            -petal.size * 0.82,
-            -petal.size * 0.5,
+            -petal.size * 0.92,
+            petal.size * 0.56,
+            -petal.size * 0.8,
+            -petal.size * 0.44,
             0,
-            -petal.size * 0.95,
+            -petal.size * 0.88,
           );
           ctx.fill();
 
-          ctx.fillStyle = 'rgba(255,255,255,0.26)';
+          ctx.shadowBlur = 0;
+          ctx.fillStyle = petal.center;
           ctx.beginPath();
           ctx.ellipse(
-            -petal.size * 0.18,
-            -petal.size * 0.14,
-            petal.size * 0.2,
-            petal.size * 0.11,
+            -petal.size * 0.1,
+            -petal.size * 0.08,
+            petal.size * 0.12,
+            petal.size * 0.08,
             -0.5,
             0,
             Math.PI * 2,
@@ -381,33 +378,14 @@ const {
         rafId = window.requestAnimationFrame(loop);
       }
 
-      function applyEffect(name) {
-        removeEffects();
-        if (name === 'sakura') createSakura();
-      }
-
       // Initialize effect during browser idle time to reduce page-load contention.
       const scheduleIdle = window.requestIdleCallback
         ? (cb) => window.requestIdleCallback(cb)
         : (cb) => window.setTimeout(cb, 0);
       scheduleIdle(() => {
-        if (currentEffect) applyEffect(currentEffect);
+        removeEffects();
+        createSakura();
       });
-
-      // Expose for the toggle component
-      window.__blogEffectCycle = function() {
-        const effects = ['', 'sakura'];
-        const idx = effects.indexOf(currentEffect);
-        const next = effects[(idx + 1) % effects.length];
-        currentEffect = next;
-        safeSetStorage(STORAGE_EFFECT, currentEffect);
-        applyEffect(currentEffect);
-        return currentEffect;
-      };
-
-      window.__blogEffectGet = function() {
-        return currentEffect;
-      };
 
       window.__blogThemeToggle = function() {
         const current = html.getAttribute('data-theme') || 'light';

@@ -29,7 +29,7 @@ const TRANSPARENT_PIXEL = 'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///ywAAAA
       style={`--album-columns:${albumColumns};--album-gap-x:14px;--album-gap-y:0px;`}
     >
       {
-        albums.map((album, idx) => (
+        albums.map((album) => (
           <article
             class="glass-panel album-item"
             role="listitem"
@@ -38,7 +38,6 @@ const TRANSPARENT_PIXEL = 'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///ywAAAA
             data-date={album.createdAt}
             tabindex="0"
             aria-label={`图片：${album.description}`}
-            data-index={idx}
           >
             <img
               src={TRANSPARENT_PIXEL}
@@ -60,9 +59,13 @@ const TRANSPARENT_PIXEL = 'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///ywAAAA
   <div id="album-modal" class="album-modal hidden" role="dialog" aria-label="图片预览" aria-hidden="true">
     <div class="album-modal-inner glass-panel">
       <button id="close-modal" aria-label="关闭预览">x</button>
-      <img id="modal-image" src="" alt="预览图" />
-      <p id="modal-desc"></p>
-      <time id="modal-date"></time>
+      <figure class="modal-figure">
+        <img id="modal-image" src="" alt="预览图" />
+        <figcaption class="modal-caption">
+          <p id="modal-desc"></p>
+          <time id="modal-date"></time>
+        </figcaption>
+      </figure>
     </div>
   </div>
 
@@ -206,6 +209,7 @@ const TRANSPARENT_PIXEL = 'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///ywAAAA
         image.src = url;
         image.alt = text;
       }
+      modal?.style.setProperty('--album-preview-bg', `url("${url.replace(/"/g, '%22')}")`);
       if (desc) desc.textContent = text;
       if (date) {
         date.textContent = createdAt;
@@ -220,6 +224,7 @@ const TRANSPARENT_PIXEL = 'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///ywAAAA
     function closeModal() {
       modal?.classList.add('hidden');
       modal?.setAttribute('aria-hidden', 'true');
+      modal?.style.removeProperty('--album-preview-bg');
       document.body.style.overflow = '';
       const lastFocused = document.querySelector('.album-item:focus-within');
       if (lastFocused instanceof HTMLElement) lastFocused.focus();

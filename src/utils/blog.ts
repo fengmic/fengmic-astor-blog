@@ -7,7 +7,7 @@ export function getPostSlug(post: BlogPost) {
 }
 
 export function sortPostsByDate(posts: BlogPost[]) {
-  return posts.sort((a, b) => b.data.date.getTime() - a.data.date.getTime());
+  return [...posts].sort((a, b) => b.data.date.getTime() - a.data.date.getTime());
 }
 
 export function getAllTags(posts: BlogPost[]) {

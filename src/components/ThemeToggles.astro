@@ -1,34 +1,13 @@
-<div class="floating-toolbar" role="toolbar" aria-label="网站设置">
-  <!-- Theme toggle -->
-  <button
-    id="btn-theme"
-    class="float-btn ui-switch theme-switch"
-    aria-label="主题开关：白天"
-    aria-pressed="false"
-    title="当前白天模式，点击切换夜间"
-  >
-    <span class="switch-track" aria-hidden="true">
-      <span class="switch-thumb">
-        <span class="switch-icon theme-icon" aria-hidden="true">☀️</span>
-      </span>
-    </span>
-  </button>
-
-  <!-- Effects cycle toggle -->
-  <button
-    id="btn-effect"
-    class="float-btn ui-switch effect-switch"
-    aria-label="特效开关：关闭"
-    aria-pressed="false"
-    title="樱花特效已关闭，点击开启"
-  >
-    <span class="switch-track" aria-hidden="true">
-      <span class="switch-thumb">
-        <span class="switch-icon effect-flower" aria-hidden="true">🌸</span>
-      </span>
-    </span>
-  </button>
-</div>
+<button
+  id="btn-theme"
+  class="theme-toggle-fab"
+  aria-label="切换白天黑夜模式"
+  aria-pressed="false"
+  title="当前白天模式，点击切换夜间"
+>
+  <span class="theme-toggle-icon" aria-hidden="true">☀️</span>
+  <span class="theme-toggle-text" aria-hidden="true">主题</span>
+</button>
 
 <script is:inline>
   function updateThemeUI() {
@@ -36,26 +15,14 @@
     const btn = document.getElementById('btn-theme');
     if (!(btn instanceof HTMLElement)) return;
 
-    const icon = btn.querySelector('.theme-icon');
+    const icon = btn.querySelector('.theme-toggle-icon');
     const isDark = theme === 'dark';
 
-    btn.classList.toggle('on', isDark);
+    btn.classList.toggle('is-dark', isDark);
     btn.setAttribute('aria-pressed', isDark ? 'true' : 'false');
-    btn.setAttribute('aria-label', isDark ? '主题开关：夜间' : '主题开关：白天');
+    btn.setAttribute('aria-label', isDark ? '切换到白天模式' : '切换到黑夜模式');
     btn.setAttribute('title', isDark ? '当前夜间模式，点击切换白天' : '当前白天模式，点击切换夜间');
     if (icon) icon.textContent = isDark ? '🌙' : '☀️';
-  }
-
-  function updateEffectUI() {
-    const effect = window.__blogEffectGet();
-    const btn = document.getElementById('btn-effect');
-    if (!(btn instanceof HTMLElement)) return;
-    const isEnabled = effect === 'sakura';
-
-    btn.classList.toggle('on', isEnabled);
-    btn.setAttribute('aria-pressed', isEnabled ? 'true' : 'false');
-    btn.setAttribute('aria-label', isEnabled ? '特效开关：开启（樱花）' : '特效开关：关闭');
-    btn.setAttribute('title', isEnabled ? '樱花特效已开启，点击关闭' : '樱花特效已关闭，点击开启');
   }
 
   document.getElementById('btn-theme')?.addEventListener('click', () => {
@@ -63,12 +30,6 @@
     updateThemeUI();
   });
 
-  document.getElementById('btn-effect')?.addEventListener('click', () => {
-    window.__blogEffectCycle();
-    updateEffectUI();
-  });
-
   // Sync UI with actual state
   updateThemeUI();
-  updateEffectUI();
 </script>
