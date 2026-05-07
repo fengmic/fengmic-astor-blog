@@ -1,36 +1,3 @@
 name = "astor-blog"
-main = "src/index.ts"
-type = "service"
 compatibility_date = "2024-12-16"
-
-# D1 Database binding
-# 注意: database_id 通过环境变量注入，不提交到 GitHub
-[[d1_databases]]
-binding = "DB"
-database_name = "astor-blog"
-database_id = "${DB_DATABASE_ID}"  # 通过 CI/CD 或本地 .env 注入
-
-# 生产环境配置
-[env.production]
-name = "astor-blog-prod"
-
-[[env.production.d1_databases]]
-binding = "DB"
-database_name = "astor-blog"
-database_id = "${DB_DATABASE_ID}"
-
-[env.production.vars]
-ENVIRONMENT = "production"
-
-# 开发环境配置
-[env.development]
-name = "astor-blog-dev"
-
-[[env.development.d1_databases]]
-binding = "DB"
-database_name = "astor-blog"
-database_id = "${DB_DATABASE_ID}"
-
-[env.development.vars]
-ENVIRONMENT = "development"
 
