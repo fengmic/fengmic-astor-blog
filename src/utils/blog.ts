@@ -29,3 +29,15 @@ export function getTopTags(posts: BlogPost[], limit = 9) {
     .slice(0, limit)
     .map((item) => item.tag);
 }
+
+export function paginatePosts(posts: BlogPost[], pageSize: number, page: number) {
+  const totalPages = Math.max(1, Math.ceil(posts.length / pageSize));
+  const currentPage = Math.min(Math.max(1, page), totalPages);
+  const startIndex = (currentPage - 1) * pageSize;
+
+  return {
+    currentPage,
+    totalPages,
+    posts: posts.slice(startIndex, startIndex + pageSize),
+  };
+}

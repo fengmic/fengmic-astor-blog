@@ -1,0 +1,307 @@
+---
+import PostCard from './PostCard.astro';
+import type { BlogPost } from '../utils/blog';
+
+interface Props {
+  posts: BlogPost[];
+  quotes: string[];
+  currentPage: number;
+  totalPages: number;
+}
+
+const { posts, quotes, currentPage, totalPages } = Astro.props as Props;
+const quote = quotes[0] || '每篇文章都应该有光。';
+const showPagination = totalPages > 1;
+const visibleSkeletonCount = Math.max(1, Math.min(posts.length || 1, 5));
+
+function pageHref(pageNumber: number) {
+  return pageNumber <= 1 ? '/home' : `/home/page/${pageNumber}`;
+}
+
+function getPageNumbers() {
+  return Array.from({ length: totalPages }, (_, index) => index + 1);
+}
+---
+
+<article class="glass-panel quote-panel" id="quote-panel" aria-live="polite">{quote}</article>
+<div class="result-bar" id="result-bar" role="status" aria-live="polite"></div>
+
+<div id="post-list" class="post-list" aria-live="polite" aria-busy="true">
+  {Array.from({ length: visibleSkeletonCount }).map(() => <article class="glass-panel post-card post-skeleton" aria-hidden="true">
+    <div class="skeleton-line skeleton-title"></div>
+    <div class="skeleton-line skeleton-body"></div>
+    <div class="skeleton-line skeleton-body short"></div>
+    <div class="skeleton-row">
+      <span></span>
+      <span></span>
+    </div>
+  </article>)}
+</div>
+
+<template id="post-list-template">
+  {posts.map((post) => <PostCard post={post} />)}
+</template>
+
+{showPagination && (
+  <nav class="pagination" aria-label="文章分页">
+    <a
+      class:list={['pagination-link', 'pagination-nav', currentPage <= 1 && 'is-disabled']}
+      href={currentPage > 1 ? pageHref(currentPage - 1) : undefined}
+      aria-disabled={currentPage <= 1 ? 'true' : 'false'}
+      tabindex={currentPage <= 1 ? '-1' : undefined}
+    >
+      上一页
+    </a>
+
+    <div class="pagination-pages" aria-label={`第 ${currentPage} 页，共 ${totalPages} 页`}>
+      {getPageNumbers().map((pageNumber) => (
+        <a
+          class:list={['pagination-link', pageNumber === currentPage && 'is-current']}
+          href={pageHref(pageNumber)}
+          aria-current={pageNumber === currentPage ? 'page' : undefined}
+        >
+          {pageNumber}
+        </a>
+      ))}
+    </div>
+
+    <a
+      class:list={['pagination-link', 'pagination-nav', currentPage >= totalPages && 'is-disabled']}
+      href={currentPage < totalPages ? pageHref(currentPage + 1) : undefined}
+      aria-disabled={currentPage >= totalPages ? 'true' : 'false'}
+      tabindex={currentPage >= totalPages ? '-1' : undefined}
+    >
+      下一页
+    </a>
+  </nav>
+)}
+
+<p id="empty-tips" class="glass-panel empty-tips hidden" role="alert">没有匹配的文章</p>
+
+<script define:vars={{ quotes, currentPage, totalPages }} is:inline>
+  const searchInput = document.getElementById('search-input');
+  const searchForm = document.getElementById('search-form');
+  const resultBar = document.getElementById('result-bar');
+  const emptyTips = document.getElementById('empty-tips');
+  const quotePanel = document.getElementById('quote-panel');
+  const postList = document.getElementById('post-list');
+  const postListTemplate = document.getElementById('post-list-template');
+
+  let selectedTag = '';
+  let keyword = '';
+  let debounceTimer = null;
+  let renderRafId = 0;
+  let quoteTypeTimer = 0;
+  let quoteRotateTimer = 0;
+  let postListMounted = false;
+
+  const QUOTE_TYPE_SPEED = 70;
+  const QUOTE_LINE_BREAK_DELAY = 180;
+  const QUOTE_HOLD_DELAY = 2200;
+  const QUOTE_ROTATE_DELAY = 7000;
+
+  function getQueryParams() {
+    const p = new URLSearchParams(window.location.search);
+    return { q: p.get('q') || '', tag: p.get('tag') || '' };
+  }
+
+  function setQueryParams(q, tag) {
+    const p = new URLSearchParams();
+    if (q) p.set('q', q);
+    if (tag) p.set('tag', tag);
+    const qs = p.toString();
+    const url = qs ? `?${qs}` : window.location.pathname;
+    window.history.replaceState(null, '', url);
+  }
+
+  function clearQuoteTimers() {
+    clearTimeout(quoteTypeTimer);
+    clearTimeout(quoteRotateTimer);
+  }
+
+  function mountPostList() {
+    if (postListMounted) return;
+    if (!(postList instanceof HTMLElement) || !(postListTemplate instanceof HTMLTemplateElement)) return;
+
+    postListMounted = true;
+    postList.innerHTML = '';
+    postList.appendChild(postListTemplate.content.cloneNode(true));
+    postList.setAttribute('aria-busy', 'false');
+
+    initializeFilters();
+  }
+
+  function initializeFilters() {
+    const cards = [...document.querySelectorAll('[data-post-card]')];
+    const cardMeta = cards.map((card) => ({
+      card,
+      tags: new Set((card.getAttribute('data-tags') || '').split('|').filter(Boolean)),
+      text: card.getAttribute('data-search') || '',
+    }));
+    const tagButtons = [...document.querySelectorAll('[data-tag-filter]')];
+
+    const render = () => {
+      let visible = 0;
+      const selectedTagLower = selectedTag.toLowerCase();
+      const keywordLower = keyword.toLowerCase();
+
+      cardMeta.forEach((item) => {
+        const hitTag = !selectedTagLower || item.tags.has(selectedTagLower);
+        const hitKeyword = !keywordLower || item.text.includes(keywordLower);
+        const show = hitTag && hitKeyword;
+
+        item.card.classList.toggle('hidden', !show);
+        if (show) visible += 1;
+      });
+
+      if (resultBar) {
+        resultBar.textContent = selectedTag || keyword
+          ? `当前筛选：${selectedTag ? `#${selectedTag}` : ''} ${keyword ? `关键词"${keyword}"` : ''}，共 ${visible} 篇`
+          : '';
+      }
+
+      if (emptyTips) {
+        emptyTips.classList.toggle('hidden', visible > 0);
+      }
+
+      setQueryParams(keyword, selectedTag);
+    };
+
+    function scheduleRender() {
+      cancelAnimationFrame(renderRafId);
+      renderRafId = requestAnimationFrame(render);
+    }
+
+    if (searchInput) {
+      searchInput.addEventListener('input', () => {
+        clearTimeout(debounceTimer);
+        debounceTimer = setTimeout(() => {
+          keyword = searchInput.value.trim();
+          scheduleRender();
+        }, 300);
+      });
+    }
+
+    if (searchForm) {
+      searchForm.addEventListener('submit', (event) => {
+        event.preventDefault();
+        clearTimeout(debounceTimer);
+        keyword = searchInput?.value?.trim() || '';
+        scheduleRender();
+      });
+    }
+
+    tagButtons.forEach((btn) => {
+      btn.addEventListener('click', () => {
+        const tag = btn.getAttribute('data-tag-filter') || '';
+        selectedTag = selectedTag === tag ? '' : tag;
+        tagButtons.forEach((node) => node.classList.remove('active'));
+        if (selectedTag) btn.classList.add('active');
+        scheduleRender();
+      });
+    });
+
+    const initParams = getQueryParams();
+    if (initParams.q) {
+      keyword = initParams.q;
+      if (searchInput) searchInput.value = keyword;
+    }
+    if (initParams.tag) {
+      selectedTag = initParams.tag;
+      tagButtons.forEach((btn) => {
+        if (btn.getAttribute('data-tag-filter') === selectedTag) {
+          btn.classList.add('active');
+        }
+      });
+    }
+
+    scheduleRender();
+  }
+
+  function typeQuote(text, onDone) {
+    if (!(quotePanel instanceof HTMLElement)) return;
+
+    clearTimeout(quoteTypeTimer);
+    quotePanel.classList.add('typing');
+    quotePanel.textContent = '';
+
+    let cursor = 0;
+
+    const tick = () => {
+      if (!(quotePanel instanceof HTMLElement)) return;
+
+      if (cursor >= text.length) {
+        quotePanel.classList.remove('typing');
+        if (typeof onDone === 'function') onDone();
+        return;
+      }
+
+      const nextChar = text[cursor];
+      quotePanel.textContent += nextChar;
+      cursor += 1;
+
+      quoteTypeTimer = window.setTimeout(
+        tick,
+        nextChar === '\n' ? QUOTE_LINE_BREAK_DELAY : QUOTE_TYPE_SPEED,
+      );
+    };
+
+    tick();
+  }
+
+  function startQuoteRotation() {
+    if (!(quotePanel instanceof HTMLElement) || !Array.isArray(quotes) || quotes.length === 0) return;
+
+    const prefersReducedMotion =
+      typeof window.matchMedia === 'function' &&
+      window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+    let idx = 0;
+
+    if (prefersReducedMotion) {
+      quotePanel.classList.remove('typing');
+      quotePanel.textContent = quotes[0];
+
+      if (quotes.length > 1) {
+        const rotateStatic = () => {
+          quoteRotateTimer = window.setTimeout(() => {
+            idx = (idx + 1) % quotes.length;
+            quotePanel.textContent = quotes[idx];
+            rotateStatic();
+          }, QUOTE_ROTATE_DELAY);
+        };
+        rotateStatic();
+      }
+      return;
+    }
+
+    const play = () => {
+      typeQuote(quotes[idx], () => {
+        if (quotes.length <= 1) return;
+
+        quoteRotateTimer = window.setTimeout(() => {
+          idx = (idx + 1) % quotes.length;
+          play();
+        }, QUOTE_HOLD_DELAY);
+      });
+    };
+
+    play();
+  }
+
+  const scheduleMount = window.requestIdleCallback
+    ? (cb) => window.requestIdleCallback(cb, { timeout: 1200 })
+    : (cb) => window.setTimeout(cb, 0);
+
+  scheduleMount(() => {
+    mountPostList();
+    startQuoteRotation();
+  });
+
+  window.addEventListener('pagehide', () => {
+    clearQuoteTimers();
+    if (quotePanel instanceof HTMLElement) {
+      quotePanel.classList.remove('typing');
+    }
+  });
+</script>
