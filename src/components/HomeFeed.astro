@@ -21,6 +21,15 @@ function pageHref(pageNumber: number) {
 function getPageNumbers() {
   return Array.from({ length: totalPages }, (_, index) => index + 1);
 }
+
+function escapeHtml(text: string) {
+  return text
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
 ---
 
 <article class="glass-panel quote-panel" id="quote-panel" aria-live="polite">{quote}</article>
@@ -94,6 +103,7 @@ function getPageNumbers() {
   let quoteTypeTimer = 0;
   let quoteRotateTimer = 0;
   let postListMounted = false;
+  let activeHighlightQuery = '';
 
   const QUOTE_TYPE_SPEED = 70;
   const QUOTE_LINE_BREAK_DELAY = 180;
@@ -119,6 +129,91 @@ function getPageNumbers() {
     clearTimeout(quoteRotateTimer);
   }
 
+  function escapeHtml(text) {
+    return text
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#39;');
+  }
+
+  function highlightText(text, query) {
+    if (!query) return escapeHtml(text);
+
+    const exactPattern = query.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    const exactMatcher = new RegExp(exactPattern, 'gi');
+
+    if (text.match(exactMatcher)) {
+      let lastIndex = 0;
+      let output = '';
+
+      for (const match of text.matchAll(exactMatcher)) {
+        if (typeof match.index !== 'number') continue;
+        const start = match.index;
+        const matchedText = match[0];
+
+        output += escapeHtml(text.slice(lastIndex, start));
+        output += `<mark class="search-highlight">${escapeHtml(matchedText)}</mark>`;
+        lastIndex = start + matchedText.length;
+      }
+
+      output += escapeHtml(text.slice(lastIndex));
+      return output;
+    }
+
+    const queryChars = [...query.replace(/\s+/g, '').toLowerCase()];
+    if (!queryChars.length) return escapeHtml(text);
+
+    const normalizedText = [...text];
+    const matches = [];
+    let cursor = 0;
+
+    for (const queryChar of queryChars) {
+      let foundIndex = -1;
+      for (let i = cursor; i < normalizedText.length; i += 1) {
+        const currentChar = normalizedText[i];
+        if (/\s/.test(currentChar)) continue;
+        if (currentChar.toLowerCase() === queryChar) {
+          foundIndex = i;
+          cursor = i + 1;
+          break;
+        }
+      }
+
+      if (foundIndex === -1) return escapeHtml(text);
+      matches.push(foundIndex);
+    }
+
+    const mergedRanges = [];
+    let rangeStart = matches[0];
+    let rangeEnd = matches[0] + 1;
+
+    for (let i = 1; i < matches.length; i += 1) {
+      const index = matches[i];
+      if (index === rangeEnd) {
+        rangeEnd += 1;
+      } else {
+        mergedRanges.push([rangeStart, rangeEnd]);
+        rangeStart = index;
+        rangeEnd = index + 1;
+      }
+    }
+    mergedRanges.push([rangeStart, rangeEnd]);
+
+    let output = '';
+    let lastIndex = 0;
+
+    mergedRanges.forEach(([start, end]) => {
+      output += escapeHtml(text.slice(lastIndex, start));
+      output += `<mark class="search-highlight">${escapeHtml(text.slice(start, end))}</mark>`;
+      lastIndex = end;
+    });
+
+    output += escapeHtml(text.slice(lastIndex));
+    return output;
+  }
+
   function mountPostList() {
     if (postListMounted) return;
     if (!(postList instanceof HTMLElement) || !(postListTemplate instanceof HTMLTemplateElement)) return;
@@ -137,22 +232,43 @@ function getPageNumbers() {
       card,
       tags: new Set((card.getAttribute('data-tags') || '').split('|').filter(Boolean)),
       text: card.getAttribute('data-search') || '',
+      title: card.querySelector('h3'),
+      excerpt: card.querySelector('p'),
+      tagNodes: [...card.querySelectorAll('.post-tags span')],
+      originalTitle: card.querySelector('h3')?.textContent || '',
+      originalExcerpt: card.querySelector('p')?.textContent || '',
+      originalTags: [...card.querySelectorAll('.post-tags span')].map((node) => node.textContent || ''),
     }));
     const tagButtons = [...document.querySelectorAll('[data-tag-filter]')];
+
+    function applyHighlights(query) {
+      cardMeta.forEach((item) => {
+        if (item.title) item.title.innerHTML = highlightText(item.originalTitle, query);
+        if (item.excerpt) item.excerpt.innerHTML = highlightText(item.originalExcerpt, query);
+
+        item.tagNodes.forEach((node, index) => {
+          const originalTag = item.originalTags[index] || node.textContent || '';
+          node.innerHTML = highlightText(originalTag, query);
+        });
+      });
+    }
 
     const render = () => {
       let visible = 0;
       const selectedTagLower = selectedTag.toLowerCase();
       const keywordLower = keyword.toLowerCase();
+      const fuzzyKeyword = keyword.replace(/\s+/g, '').toLowerCase();
 
       cardMeta.forEach((item) => {
         const hitTag = !selectedTagLower || item.tags.has(selectedTagLower);
-        const hitKeyword = !keywordLower || item.text.includes(keywordLower);
+        const hitKeyword = !fuzzyKeyword || fuzzyIncludes(item.text, fuzzyKeyword);
         const show = hitTag && hitKeyword;
 
         item.card.classList.toggle('hidden', !show);
         if (show) visible += 1;
       });
+
+      applyHighlights(activeHighlightQuery);
 
       if (resultBar) {
         resultBar.textContent = selectedTag || keyword
@@ -172,11 +288,39 @@ function getPageNumbers() {
       renderRafId = requestAnimationFrame(render);
     }
 
+    function fuzzyIncludes(text, query) {
+      if (!query) return true;
+
+      const textChars = [...text];
+      const queryChars = [...query];
+      let cursor = 0;
+
+      for (const queryChar of queryChars) {
+        let found = false;
+
+        while (cursor < textChars.length) {
+          const currentChar = textChars[cursor];
+          cursor += 1;
+
+          if (/\s/.test(currentChar)) continue;
+          if (currentChar.toLowerCase() === queryChar) {
+            found = true;
+            break;
+          }
+        }
+
+        if (!found) return false;
+      }
+
+      return true;
+    }
+
     if (searchInput) {
       searchInput.addEventListener('input', () => {
         clearTimeout(debounceTimer);
         debounceTimer = setTimeout(() => {
           keyword = searchInput.value.trim();
+          activeHighlightQuery = keyword;
           scheduleRender();
         }, 300);
       });
@@ -187,6 +331,7 @@ function getPageNumbers() {
         event.preventDefault();
         clearTimeout(debounceTimer);
         keyword = searchInput?.value?.trim() || '';
+        activeHighlightQuery = keyword;
         scheduleRender();
       });
     }
@@ -204,6 +349,7 @@ function getPageNumbers() {
     const initParams = getQueryParams();
     if (initParams.q) {
       keyword = initParams.q;
+      activeHighlightQuery = keyword;
       if (searchInput) searchInput.value = keyword;
     }
     if (initParams.tag) {

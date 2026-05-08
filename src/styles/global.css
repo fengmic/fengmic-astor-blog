@@ -550,6 +550,30 @@ img {
   opacity: 1;
 }
 
+.search-highlight {
+  padding: 0 3px;
+  border-radius: 6px;
+  background:
+    linear-gradient(180deg, rgba(255, 244, 250, 0.18), rgba(255, 244, 250, 0)),
+    linear-gradient(120deg, rgba(255, 203, 225, 0.95), rgba(255, 225, 205, 0.9));
+  color: inherit;
+  box-shadow:
+    0 0 0 1px rgba(232, 95, 149, 0.08),
+    0 0 14px rgba(232, 95, 149, 0.16),
+    inset 0 -0.42em 0 rgba(255, 255, 255, 0.22);
+  text-shadow: 0 0 0.01px currentColor;
+}
+
+[data-theme="dark"] .search-highlight {
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.08), rgba(255, 255, 255, 0)),
+    linear-gradient(120deg, rgba(255, 148, 194, 0.82), rgba(255, 206, 164, 0.68));
+  box-shadow:
+    0 0 0 1px rgba(255, 170, 210, 0.1),
+    0 0 16px rgba(255, 143, 193, 0.22),
+    inset 0 -0.42em 0 rgba(255, 255, 255, 0.1);
+}
+
 .post-skeleton {
   pointer-events: none;
 }
