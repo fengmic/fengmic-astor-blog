@@ -49,11 +49,16 @@ const TRANSPARENT_PIXEL = 'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///ywAAAA
 
 <script is:inline>
   const carousel = document.querySelector('[data-carousel]');
+  const scheduleCarouselInit = window.requestIdleCallback
+    ? (cb) => window.requestIdleCallback(cb, { timeout: 1200 })
+    : (cb) => window.setTimeout(cb, 0);
+
   if (carousel instanceof HTMLElement) {
     const imgs = [...carousel.querySelectorAll('img')].filter((img) => img instanceof HTMLImageElement);
     let current = 0;
     let timerId = 0;
     let observer = null;
+    let carouselStarted = false;
     const onVisibilityChange = () => {
       if (document.hidden) stopCarousel();
       else startCarousel();
@@ -79,7 +84,7 @@ const TRANSPARENT_PIXEL = 'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///ywAAAA
     }
 
     function startCarousel() {
-      if (timerId || imgs.length <= 1) return;
+      if (timerId || imgs.length <= 1 || !carouselStarted) return;
       timerId = window.setInterval(() => {
         const next = (current + 1) % imgs.length;
         setActive(next);
@@ -92,28 +97,32 @@ const TRANSPARENT_PIXEL = 'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///ywAAAA
       timerId = 0;
     }
 
-    if (imgs.length > 0) {
-      setActive(0);
-    }
+    scheduleCarouselInit(() => {
+      if (imgs.length > 0) {
+        setActive(0);
+      }
 
-    if ('IntersectionObserver' in window) {
-      observer = new IntersectionObserver((entries) => {
-        entries.forEach((entry) => {
-          if (entry.isIntersecting) startCarousel();
-          else stopCarousel();
-        });
-      }, { threshold: 0.15 });
-      observer.observe(carousel);
-    } else {
-      startCarousel();
-    }
+      carouselStarted = true;
 
-    document.addEventListener('visibilitychange', onVisibilityChange);
+      if ('IntersectionObserver' in window) {
+        observer = new IntersectionObserver((entries) => {
+          entries.forEach((entry) => {
+            if (entry.isIntersecting) startCarousel();
+            else stopCarousel();
+          });
+        }, { threshold: 0.15 });
+        observer.observe(carousel);
+      } else {
+        startCarousel();
+      }
 
-    window.addEventListener('pagehide', () => {
-      stopCarousel();
-      observer?.disconnect();
-      document.removeEventListener('visibilitychange', onVisibilityChange);
+      document.addEventListener('visibilitychange', onVisibilityChange);
+
+      window.addEventListener('pagehide', () => {
+        stopCarousel();
+        observer?.disconnect();
+        document.removeEventListener('visibilitychange', onVisibilityChange);
+      });
     });
   }
 

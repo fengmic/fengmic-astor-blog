@@ -74,6 +74,10 @@ function escapeHtml(text: string) {
       ))}
     </div>
 
+    <span class="pagination-summary" aria-live="polite">
+      第 {currentPage} 页 / 共 {totalPages} 页
+    </span>
+
     <a
       class:list={['pagination-link', 'pagination-nav', currentPage >= totalPages && 'is-disabled']}
       href={currentPage < totalPages ? pageHref(currentPage + 1) : undefined}
@@ -104,6 +108,7 @@ function escapeHtml(text: string) {
   let quoteRotateTimer = 0;
   let postListMounted = false;
   let activeHighlightQuery = '';
+  let lastAppliedHighlightQuery = null;
 
   const QUOTE_TYPE_SPEED = 70;
   const QUOTE_LINE_BREAK_DELAY = 180;
@@ -241,8 +246,12 @@ function escapeHtml(text: string) {
     }));
     const tagButtons = [...document.querySelectorAll('[data-tag-filter]')];
 
-    function applyHighlights(query) {
+    function applyHighlights(query, visibleSet) {
+      if (query === lastAppliedHighlightQuery) return;
+      lastAppliedHighlightQuery = query;
+
       cardMeta.forEach((item) => {
+        if (visibleSet && !visibleSet.has(item)) return;
         if (item.title) item.title.innerHTML = highlightText(item.originalTitle, query);
         if (item.excerpt) item.excerpt.innerHTML = highlightText(item.originalExcerpt, query);
 
@@ -256,8 +265,9 @@ function escapeHtml(text: string) {
     const render = () => {
       let visible = 0;
       const selectedTagLower = selectedTag.toLowerCase();
-      const keywordLower = keyword.toLowerCase();
       const fuzzyKeyword = keyword.replace(/\s+/g, '').toLowerCase();
+      const visibleItems = [];
+      const visibleSet = new Set();
 
       cardMeta.forEach((item) => {
         const hitTag = !selectedTagLower || item.tags.has(selectedTagLower);
@@ -265,10 +275,30 @@ function escapeHtml(text: string) {
         const show = hitTag && hitKeyword;
 
         item.card.classList.toggle('hidden', !show);
-        if (show) visible += 1;
+        if (show) {
+          visible += 1;
+          visibleItems.push(item);
+          visibleSet.add(item);
+        }
       });
 
-      applyHighlights(activeHighlightQuery);
+      if (!activeHighlightQuery) {
+        lastAppliedHighlightQuery = null;
+      }
+
+      applyHighlights(activeHighlightQuery, visibleSet);
+
+      if (activeHighlightQuery) {
+        cardMeta.forEach((item) => {
+          if (visibleItems.includes(item)) return;
+          if (item.title) item.title.innerHTML = escapeHtml(item.originalTitle);
+          if (item.excerpt) item.excerpt.innerHTML = escapeHtml(item.originalExcerpt);
+          item.tagNodes.forEach((node, index) => {
+            const originalTag = item.originalTags[index] || node.textContent || '';
+            node.innerHTML = escapeHtml(originalTag);
+          });
+        });
+      }
 
       if (resultBar) {
         resultBar.textContent = selectedTag || keyword

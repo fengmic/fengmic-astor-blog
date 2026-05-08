@@ -796,6 +796,12 @@ img {
   justify-content: center;
 }
 
+.pagination-summary {
+  color: var(--ink-soft);
+  font-size: 0.86rem;
+  white-space: nowrap;
+}
+
 .pagination-link {
   display: inline-flex;
   align-items: center;
@@ -1368,6 +1374,16 @@ img {
   .navbar {
     grid-template-columns: 1fr;
     gap: 10px;
+  }
+
+  .pagination {
+    gap: 8px;
+  }
+
+  .pagination-summary {
+    width: 100%;
+    text-align: center;
+    order: 3;
   }
 
 }

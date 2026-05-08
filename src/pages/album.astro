@@ -88,6 +88,7 @@ function getAlbumThumbnailUrl(album) {
     let layoutRafId = 0;
     let lazyObserver = null;
     let lazyLoaderInitialized = false;
+    let resizeTimerId = 0;
 
     function getEffectiveColumns(configuredColumns) {
       if (window.innerWidth <= BREAKPOINT_MOBILE) return 1;
@@ -96,8 +97,11 @@ function getAlbumThumbnailUrl(album) {
     }
 
     function scheduleMasonryLayout() {
-      cancelAnimationFrame(layoutRafId);
-      layoutRafId = requestAnimationFrame(applyMasonryLayout);
+      clearTimeout(resizeTimerId);
+      resizeTimerId = window.setTimeout(() => {
+        cancelAnimationFrame(layoutRafId);
+        layoutRafId = requestAnimationFrame(applyMasonryLayout);
+      }, 80);
     }
 
     function loadImageIfNeeded(img) {
@@ -265,7 +269,7 @@ function getAlbumThumbnailUrl(album) {
     // Initialize lazy loader before the first layout pass.
     initViewportLazyLoader();
 
-    window.addEventListener('resize', scheduleMasonryLayout);
+    window.addEventListener('resize', scheduleMasonryLayout, { passive: true });
 
     // Initial layout pass.
     scheduleMasonryLayout();
