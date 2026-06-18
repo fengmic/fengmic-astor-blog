@@ -5,7 +5,18 @@
   aria-pressed="false"
   title="当前白天模式，点击切换夜间"
 >
-  <span class="theme-toggle-icon" aria-hidden="true">☀️</span>
+  <span class="theme-toggle-icon theme-toggle-sun" aria-hidden="true">
+    <svg viewBox="0 0 24 24" focusable="false">
+      <circle cx="12" cy="12" r="4.2"></circle>
+      <path d="M12 2.75v2.1M12 19.15v2.1M4.18 4.18l1.48 1.48M18.34 18.34l1.48 1.48M2.75 12h2.1M19.15 12h2.1M4.18 19.82l1.48-1.48M18.34 5.66l1.48-1.48"></path>
+    </svg>
+  </span>
+  <span class="theme-toggle-icon theme-toggle-moon" aria-hidden="true">
+    <svg viewBox="0 0 24 24" focusable="false">
+      <path d="M20.2 14.55A7.7 7.7 0 0 1 9.45 3.8a8.65 8.65 0 1 0 10.75 10.75Z"></path>
+      <path d="M16.8 4.2l.35 1.25 1.25.35-1.25.35-.35 1.25-.35-1.25-1.25-.35 1.25-.35.35-1.25Z"></path>
+    </svg>
+  </span>
 </button>
 
 <script is:inline>
@@ -14,27 +25,37 @@
     const btn = document.getElementById('btn-theme');
     if (!(btn instanceof HTMLElement)) return;
 
-    const icon = btn.querySelector('.theme-toggle-icon');
     const isDark = theme === 'dark';
 
     btn.classList.toggle('is-dark', isDark);
     btn.setAttribute('aria-pressed', isDark ? 'true' : 'false');
     btn.setAttribute('aria-label', isDark ? '切换到白天模式' : '切换到黑夜模式');
     btn.setAttribute('title', isDark ? '当前夜间模式，点击切换白天' : '当前白天模式，点击切换夜间');
-    if (icon) icon.textContent = isDark ? '🌙' : '☀️';
   }
 
   document.getElementById('btn-theme')?.addEventListener('click', (event) => {
     const btn = event.currentTarget;
+    const html = document.documentElement;
+
     if (btn instanceof HTMLElement) {
+      btn.classList.remove('is-toggling');
+      // Force restart the button-only animation without letting page surfaces animate.
+      void btn.offsetWidth;
       btn.classList.add('is-toggling');
       window.setTimeout(() => {
         btn.classList.remove('is-toggling');
-      }, 260);
+      }, 420);
     }
 
+    html.classList.add('is-theme-changing');
     window.__blogThemeToggle();
     updateThemeUI();
+
+    window.requestAnimationFrame(() => {
+      window.setTimeout(() => {
+        html.classList.remove('is-theme-changing');
+      }, 80);
+    });
   });
 
   // Sync UI with actual state

@@ -157,6 +157,18 @@ img {
   border-radius: 4px;
 }
 
+html.is-theme-changing body,
+html.is-theme-changing .glass-panel,
+html.is-theme-changing .background-overlay,
+html.is-theme-changing .background-image,
+html.is-theme-changing .post-card,
+html.is-theme-changing .widget,
+html.is-theme-changing .navbar,
+html.is-theme-changing .sidebar,
+html.is-theme-changing .theme-toggle-fab:not(.is-toggling) {
+  transition: none !important;
+}
+
 /* Reduce motion — universal kill switch for animations + hover transforms */
 @media (prefers-reduced-motion: reduce) {
   *,
@@ -225,6 +237,11 @@ img {
 .post-detail:focus-within {
   transform: none;
   box-shadow: 0 12px 30px rgba(181, 67, 118, 0.12);
+}
+
+.post-detail:hover::before,
+.post-detail:focus-within::before {
+  opacity: 0;
 }
 
 .sidebar,
@@ -1558,35 +1575,38 @@ img {
   width: 52px;
   height: 52px;
   padding: 0;
-  border: 1px solid rgba(233, 180, 202, 0.78);
+  border: 1px solid rgba(233, 180, 202, 0.72);
   border-radius: 999px;
   background:
-    linear-gradient(160deg, rgba(255, 255, 255, 0.92), rgba(255, 240, 246, 0.72)),
-    radial-gradient(circle at 30% 28%, rgba(255, 214, 229, 0.78), transparent 42%);
+    linear-gradient(160deg, rgba(255, 255, 255, 0.94), rgba(255, 240, 246, 0.78)),
+    radial-gradient(circle at 32% 26%, rgba(255, 224, 235, 0.86), transparent 46%);
   backdrop-filter: blur(6px) saturate(112%);
   -webkit-backdrop-filter: blur(6px) saturate(112%);
   box-shadow:
     0 10px 20px rgba(48, 42, 59, 0.12),
     inset 0 1px 0 rgba(255, 255, 255, 0.86);
-  color: #3f4463;
+  color: #9a3f66;
   cursor: pointer;
+  touch-action: manipulation;
   transition:
-    transform 0.22s ease,
-    filter 0.24s ease,
-    background 0.28s ease,
-    border-color 0.28s ease,
-    box-shadow 0.28s ease;
+    transform 0.2s cubic-bezier(0.2, 0.8, 0.2, 1),
+    filter 0.2s ease,
+    background 0.18s ease,
+    border-color 0.18s ease,
+    box-shadow 0.18s ease,
+    color 0.18s ease;
   isolation: isolate;
+  overflow: hidden;
 }
 
 [data-theme="dark"] .theme-toggle-fab {
-  border-color: rgba(120, 104, 132, 0.7);
+  border-color: rgba(130, 116, 148, 0.66);
   background:
-    linear-gradient(160deg, rgba(32, 24, 40, 0.9), rgba(26, 20, 32, 0.78)),
-    radial-gradient(circle at 30% 28%, rgba(115, 80, 130, 0.36), transparent 42%);
-  color: #e5e9ff;
+    linear-gradient(160deg, rgba(34, 26, 44, 0.92), rgba(24, 19, 31, 0.82)),
+    radial-gradient(circle at 30% 26%, rgba(126, 96, 156, 0.42), transparent 46%);
+  color: #dfe5ff;
   box-shadow:
-    0 12px 26px rgba(5, 6, 10, 0.36),
+    0 12px 26px rgba(5, 6, 10, 0.34),
     inset 0 1px 0 rgba(255, 255, 255, 0.1);
 }
 
@@ -1596,7 +1616,7 @@ img {
 }
 
 .theme-toggle-fab:active {
-  transform: translateY(0) scale(0.98);
+  transform: translateY(0) scale(0.97);
 }
 
 .theme-toggle-fab:focus-visible {
@@ -1608,12 +1628,12 @@ img {
 .theme-toggle-fab::before {
   content: '';
   position: absolute;
-  inset: 8px;
+  inset: 7px;
   border-radius: inherit;
-  background: radial-gradient(circle at 35% 30%, rgba(255, 255, 255, 0.74), rgba(255, 255, 255, 0));
-  opacity: 0.6;
+  background: radial-gradient(circle at 35% 30%, rgba(255, 255, 255, 0.76), rgba(255, 255, 255, 0));
+  opacity: 0.62;
   z-index: -1;
-  transition: opacity 0.28s ease, transform 0.28s ease;
+  transition: opacity 0.22s ease, transform 0.22s ease;
 }
 
 .theme-toggle-fab::after {
@@ -1621,49 +1641,75 @@ img {
   position: absolute;
   inset: -4px;
   border-radius: inherit;
-  background: radial-gradient(circle, rgba(232, 89, 143, 0.18), transparent 68%);
+  background: radial-gradient(circle, rgba(232, 89, 143, 0.2), transparent 68%);
   opacity: 0;
-  transform: scale(0.7);
-  transition: opacity 0.28s ease, transform 0.28s ease;
+  transform: scale(0.62);
+  transition: opacity 0.32s ease, transform 0.32s cubic-bezier(0.2, 0.8, 0.2, 1);
   z-index: -2;
 }
 
 .theme-toggle-icon {
-  width: 28px;
-  height: 28px;
+  position: absolute;
+  inset: 12px;
   display: grid;
   place-items: center;
   border-radius: 50%;
-  background: linear-gradient(180deg, #fffef3 0%, #ffe59d 100%);
-  box-shadow:
-    0 5px 10px rgba(104, 90, 38, 0.22),
-    inset 0 1px 0 rgba(255, 255, 255, 0.9);
+  transform-origin: center;
+  will-change: transform, opacity;
   transition:
-    background 0.28s ease,
-    box-shadow 0.28s ease,
-    transform 0.28s ease,
-    filter 0.28s ease;
+    opacity 0.22s ease,
+    transform 0.36s cubic-bezier(0.22, 1, 0.36, 1);
 }
 
-.theme-toggle-fab.is-dark .theme-toggle-icon {
-  background: linear-gradient(180deg, #f3f5ff 0%, #d8defd 100%);
-  box-shadow:
-    0 5px 10px rgba(20, 24, 46, 0.28),
-    inset 0 1px 0 rgba(255, 255, 255, 0.5);
+.theme-toggle-icon svg {
+  width: 24px;
+  height: 24px;
+  display: block;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.9;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.theme-toggle-sun {
+  opacity: 1;
+  transform: translateY(0) rotate(0deg) scale(1);
+}
+
+.theme-toggle-moon {
+  opacity: 0;
+  transform: translateY(12px) rotate(-32deg) scale(0.72);
+}
+
+.theme-toggle-moon svg path:first-child,
+.theme-toggle-moon svg path:last-child {
+  fill: currentColor;
+  stroke: none;
+}
+
+.theme-toggle-fab.is-dark .theme-toggle-sun {
+  opacity: 0;
+  transform: translateY(-12px) rotate(48deg) scale(0.72);
+}
+
+.theme-toggle-fab.is-dark .theme-toggle-moon {
+  opacity: 1;
+  transform: translateY(0) rotate(0deg) scale(1);
 }
 
 .theme-toggle-fab.is-dark::before {
-  opacity: 0.35;
+  opacity: 0.34;
 }
 
 .theme-toggle-fab.is-dark::after {
-  background: radial-gradient(circle, rgba(150, 164, 255, 0.18), transparent 68%);
+  background: radial-gradient(circle, rgba(150, 164, 255, 0.2), transparent 68%);
 }
 
 .theme-toggle-fab.is-toggling {
   box-shadow:
-    0 16px 28px rgba(48, 42, 59, 0.2),
-    inset 0 1px 0 rgba(255, 255, 255, 0.88);
+    0 16px 28px rgba(48, 42, 59, 0.18),
+    inset 0 1px 0 rgba(255, 255, 255, 0.72);
 }
 
 .theme-toggle-fab.is-toggling::after {
@@ -1672,26 +1718,14 @@ img {
 }
 
 .theme-toggle-fab.is-toggling .theme-toggle-icon {
-  animation: theme-toggle-pulse 0.26s ease, theme-toggle-spin 0.44s ease;
+  animation: theme-toggle-orbit 0.42s cubic-bezier(0.22, 1, 0.36, 1);
 }
 
-@keyframes theme-toggle-spin {
-  0% {
-    transform: rotate(0deg) scale(1);
-  }
-  45% {
-    transform: rotate(110deg) scale(1.1);
-  }
-  100% {
-    transform: rotate(180deg) scale(1);
-  }
-}
-
-@keyframes theme-toggle-pulse {
+@keyframes theme-toggle-orbit {
   0% {
     filter: brightness(1);
   }
-  50% {
+  45% {
     filter: brightness(1.12);
   }
   100% {
@@ -1763,6 +1797,11 @@ img {
 
   .right-col {
     order: 3;
+  }
+
+  .carousel-widget,
+  .calendar-widget {
+    display: none;
   }
 
   .menu-links {
