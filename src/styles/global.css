@@ -305,6 +305,7 @@ img {
 
 .search-form input {
   width: 100%;
+  min-height: 44px;
   border: 1px solid var(--input-border);
   border-radius: 999px;
   padding: 10px 14px;
@@ -329,6 +330,7 @@ img {
 }
 
 .search-form button {
+  min-height: 44px;
   border: 0;
   border-radius: 999px;
   padding: 10px 14px;
@@ -356,6 +358,9 @@ img {
 
 .menu-links a {
   position: relative;
+  min-height: 44px;
+  display: inline-flex;
+  align-items: center;
   padding: 6px 12px;
   border-radius: 999px;
   color: var(--ink-soft);
@@ -487,6 +492,8 @@ img {
   border-radius: 12px;
   background: var(--blockquote-bg);
   font-size: 0.9rem;
+  line-height: 1.7;
+  white-space: pre-line;
   color: var(--blockquote-color);
   transition: transform 0.22s ease, background 0.22s ease;
 }
@@ -825,9 +832,10 @@ img {
 }
 
 .tag-chip {
+  min-height: 44px;
   border: 0;
   border-radius: 999px;
-  padding: 5px 10px;
+  padding: 5px 12px;
   background: rgba(232, 95, 149, 0.18);
   color: #9f3465;
   cursor: pointer;
@@ -879,9 +887,10 @@ img {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  min-width: 42px;
-  height: 36px;
-  padding: 0 12px;
+  min-width: 44px;
+  min-height: 44px;
+  height: auto;
+  padding: 0 14px;
   border-radius: 999px;
   border: 1px solid rgba(232, 95, 149, 0.18);
   background: rgba(255, 255, 255, 0.56);
@@ -1357,8 +1366,8 @@ img {
   position: absolute;
   top: 10px;
   right: 10px;
-  width: 32px;
-  height: 32px;
+  width: 44px;
+  height: 44px;
   border: 0;
   border-radius: 50%;
   cursor: pointer;
@@ -1485,11 +1494,48 @@ img {
   color: var(--ink);
 }
 
+.prose-zone p,
+.prose-zone ul,
+.prose-zone ol,
+.prose-zone blockquote {
+  margin-block: 1em;
+}
+
+.prose-zone a {
+  color: var(--accent-strong);
+  text-decoration: underline;
+  text-decoration-thickness: 0.08em;
+  text-underline-offset: 0.22em;
+  transition: color 0.18s ease, text-decoration-color 0.18s ease;
+}
+
+.prose-zone a:hover {
+  color: var(--accent-on-bg);
+  text-decoration-color: currentColor;
+}
+
+.prose-zone blockquote {
+  padding: 12px 16px;
+  border-left: 4px solid var(--accent);
+  border-radius: 12px;
+  background: var(--blockquote-bg);
+  color: var(--blockquote-color);
+}
+
+.prose-zone img {
+  display: block;
+  margin: 1.4em auto;
+  border-radius: 14px;
+  box-shadow: 0 12px 28px rgba(79, 37, 61, 0.1);
+}
+
 .prose-zone pre {
   overflow: auto;
   padding: 14px;
+  border: 1px solid var(--line);
   border-radius: 12px;
   background: var(--code-bg);
+  line-height: 1.65;
 }
 
 .prose-zone code {
@@ -1705,6 +1751,18 @@ img {
 
   .sticky-col {
     position: static;
+  }
+
+  .center-col {
+    order: 1;
+  }
+
+  .left-col {
+    order: 2;
+  }
+
+  .right-col {
+    order: 3;
   }
 
   .menu-links {

@@ -288,8 +288,14 @@ function initializeFilters() {
     btn.addEventListener('click', () => {
       const tag = btn.getAttribute('data-tag-filter') || '';
       selectedTag = selectedTag === tag ? '' : tag;
-      tagButtons.forEach((node) => node.classList.remove('active'));
-      if (selectedTag) btn.classList.add('active');
+      tagButtons.forEach((node) => {
+        node.classList.remove('active');
+        node.setAttribute('aria-pressed', 'false');
+      });
+      if (selectedTag) {
+        btn.classList.add('active');
+        btn.setAttribute('aria-pressed', 'true');
+      }
       scheduleRender();
     });
   });
@@ -305,6 +311,9 @@ function initializeFilters() {
     tagButtons.forEach((btn) => {
       if (btn.getAttribute('data-tag-filter') === selectedTag) {
         btn.classList.add('active');
+        btn.setAttribute('aria-pressed', 'true');
+      } else {
+        btn.setAttribute('aria-pressed', 'false');
       }
     });
   }
