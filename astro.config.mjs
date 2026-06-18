@@ -22,6 +22,10 @@ function rehypeImagePerformance() {
 
 export default defineConfig({
   site: 'https://fengmic.pages.dev/',
+  prefetch: {
+    prefetchAll: false,
+    defaultStrategy: 'hover'
+  },
   markdown: {
     shikiConfig: {
       theme: 'github-light'

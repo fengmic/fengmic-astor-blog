@@ -5,25 +5,43 @@ import { getPostSlug, type BlogPost } from '../utils/blog';
 
 const { post } = Astro.props as { post: BlogPost };
 const postSlug = getPostSlug(post);
+const monthAnchor = `archive-${format(post.data.date, 'yyyy-MM')}`;
+const dateLabel = format(post.data.date, 'yyyy-MM-dd', { locale: zhCN });
+const dateIso = format(post.data.date, 'yyyy-MM-dd');
 ---
 
-<a
+<article
   class="post-card glass-panel"
-  href={`/post/${postSlug}`}
   data-post-card
   data-tags={post.data.tags.join('|').toLowerCase()}
   data-search={`${post.data.title} ${post.data.excerpt} ${post.data.tags.join(' ')}`.toLowerCase()}
-  aria-label={`文章：${post.data.title}`}
 >
-  <h3>{post.data.title}</h3>
+  <h3>
+    <a class="post-card-title-link" href={`/post/${postSlug}`}>{post.data.title}</a>
+  </h3>
   <p>{post.data.excerpt}</p>
 
   <div class="post-meta">
-    <span>👤 {post.data.author}</span>
-    <span>📅 {format(post.data.date, 'yyyy-MM-dd', { locale: zhCN })}</span>
+    <span>
+      <a class="post-meta-link author-name" href="/home" aria-label={`查看作者 ${post.data.author} 的主页`}>
+        {post.data.author}
+      </a>
+    </span>
+    <span>
+      📅
+      <a
+        class="post-meta-link post-meta-date"
+        href={`/archive?mode=time#${monthAnchor}`}
+        aria-label={`查看 ${format(post.data.date, 'yyyy 年 MM 月')} 的归档`}
+      >
+        <time datetime={dateIso}>{dateLabel}</time>
+      </a>
+    </span>
   </div>
 
   <div class="post-tags">
-    {post.data.tags.map((tag) => <span>#{tag}</span>)}
+    {post.data.tags.map((tag: string) => (
+      <a class="post-tag-link" href={`/archive?mode=tag&tag=${encodeURIComponent(tag)}`}>#{tag}</a>
+    ))}
   </div>
-</a>
+</article>

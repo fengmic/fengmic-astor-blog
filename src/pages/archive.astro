@@ -1,0 +1,171 @@
+---
+import { getCollection } from 'astro:content';
+import { format } from 'date-fns';
+import { zhCN } from 'date-fns/locale';
+import MainLayout from '../layouts/MainLayout.astro';
+import Navbar from '../components/Navbar.astro';
+import BackgroundLayer from '../components/BackgroundLayer.astro';
+import { getAllTags, getPostSlug, sortPostsByDate, type BlogPost } from '../utils/blog';
+
+const posts = sortPostsByDate(await getCollection('posts'));
+const tags = getAllTags(posts);
+
+type MonthGroup = { key: string; label: string; posts: BlogPost[] };
+type YearGroup = { year: number; months: MonthGroup[]; count: number };
+
+const yearMap = new Map<number, Map<string, BlogPost[]>>();
+for (const post of posts) {
+  const d = post.data.date;
+  const year = d.getFullYear();
+  const monthKey = format(d, 'yyyy-MM');
+  if (!yearMap.has(year)) yearMap.set(year, new Map());
+  const monthMap = yearMap.get(year)!;
+  const bucket = monthMap.get(monthKey);
+  if (bucket) bucket.push(post);
+  else monthMap.set(monthKey, [post]);
+}
+
+const years: YearGroup[] = [...yearMap.entries()]
+  .sort((a, b) => b[0] - a[0])
+  .map(([year, monthMap]) => ({
+    year,
+    count: [...monthMap.values()].reduce((sum, list) => sum + list.length, 0),
+    months: [...monthMap.entries()]
+      .sort((a, b) => b[0].localeCompare(a[0]))
+      .map(([key, list]) => ({
+        key,
+        label: format(list[0].data.date, 'MM 月', { locale: zhCN }),
+        posts: list,
+      })),
+  }));
+---
+
+<MainLayout title="归档 | 楓念的博客" description="按标签或按时间浏览全部文章">
+  <BackgroundLayer />
+  <Navbar currentPath="/archive" />
+
+  <main
+    class="page-wrap archive-layout"
+    id="main-content"
+    data-archive-root
+    data-mode="tag"
+  >
+    <header class="archive-toolbar glass-panel">
+      <div class="archive-mode-tabs" role="tablist" aria-label="归档模式">
+        <button
+          type="button"
+          class="archive-mode-tab is-active"
+          role="tab"
+          aria-selected="true"
+          data-mode-tab="tag"
+        >标签归档</button>
+        <button
+          type="button"
+          class="archive-mode-tab"
+          role="tab"
+          aria-selected="false"
+          data-mode-tab="time"
+        >时间归档</button>
+      </div>
+      <p class="archive-toolbar-meta">共 {posts.length} 篇 · {tags.length} 个标签 · 跨 {years.length} 年</p>
+    </header>
+
+    <aside class="archive-side glass-panel sticky-col" aria-label="侧栏">
+      <!-- 标签模式侧栏 -->
+      <div class="archive-side-panel" data-panel="tag">
+        <h2 class="archive-side-title">标签</h2>
+        <nav class="archive-tag-list">
+          <a
+            class="archive-tag-item is-active"
+            href="/archive?mode=tag"
+            data-tag-link=""
+            aria-current="page"
+          >
+            <span class="label">全部</span>
+            <span class="count">{posts.length}</span>
+          </a>
+          {tags.map((item) => (
+            <a
+              class="archive-tag-item"
+              href={`/archive?mode=tag&tag=${encodeURIComponent(item.tag)}`}
+              data-tag-link={item.tag.toLowerCase()}
+            >
+              <span class="label">#{item.tag}</span>
+              <span class="count">{item.count}</span>
+            </a>
+          ))}
+        </nav>
+      </div>
+
+      <!-- 时间模式侧栏 -->
+      <div class="archive-side-panel" data-panel="time" hidden>
+        <h2 class="archive-side-title">时间索引</h2>
+        <nav class="archive-toc-list">
+          {years.map((y) => (
+            <div class="archive-toc-year">
+              <span class="archive-toc-year-label">{y.year} ({y.count})</span>
+              <ul>
+                {y.months.map((m) => (
+                  <li>
+                    <a href={`/archive?mode=time#archive-${m.key}`} data-month-link={m.key}>
+                      {m.label} · {m.posts.length}
+                    </a>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          ))}
+        </nav>
+      </div>
+    </aside>
+
+    <section class="archive-stream glass-panel" aria-live="polite">
+      <header class="archive-stream-head">
+        <h1 data-stream-title>全部文章</h1>
+        <p class="archive-stream-meta"><span data-stream-count>{posts.length}</span> 篇</p>
+      </header>
+
+      <div class="archive-stream-body" data-stream-body>
+        {years.map((y) => (
+          <section class="archive-year" data-year-group={y.year}>
+            <h2 class="archive-year-label">{y.year}</h2>
+            {y.months.map((m) => (
+              <section class="archive-month" data-month-group={m.key} id={`archive-${m.key}`}>
+                <h3 class="archive-month-label">
+                  {m.label} <span class="archive-month-count">{m.posts.length} 篇</span>
+                </h3>
+                <ul class="archive-articles">
+                  {m.posts.map((post) => (
+                    <li
+                      class="article-item"
+                      data-article
+                      data-tags={post.data.tags.join('|').toLowerCase()}
+                    >
+                      <a href={`/post/${getPostSlug(post)}`}>
+                        <time datetime={format(post.data.date, 'yyyy-MM-dd')}>
+                          {format(post.data.date, 'MM-dd')}
+                        </time>
+                        <span class="title">{post.data.title}</span>
+                        <span class="article-tags">
+                          {post.data.tags.map((tag: string) => (
+                            <span class="article-tag">#{tag}</span>
+                          ))}
+                        </span>
+                      </a>
+                    </li>
+                  ))}
+                </ul>
+              </section>
+            ))}
+          </section>
+        ))}
+      </div>
+
+      <p class="archive-empty hidden" data-stream-empty role="alert">该标签下暂无文章</p>
+    </section>
+  </main>
+</MainLayout>
+
+<script>
+  import '../scripts/archive.js';
+</script>
