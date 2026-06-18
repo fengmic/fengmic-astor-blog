@@ -1650,7 +1650,10 @@ html.is-theme-changing .theme-toggle-fab:not(.is-toggling) {
 
 .theme-toggle-icon {
   position: absolute;
-  inset: 12px;
+  top: 50%;
+  left: 50%;
+  width: 28px;
+  height: 28px;
   display: grid;
   place-items: center;
   border-radius: 50%;
@@ -1667,35 +1670,35 @@ html.is-theme-changing .theme-toggle-fab:not(.is-toggling) {
   display: block;
   fill: none;
   stroke: currentColor;
-  stroke-width: 1.9;
+  stroke-width: 1.75;
   stroke-linecap: round;
   stroke-linejoin: round;
 }
 
 .theme-toggle-sun {
   opacity: 1;
-  transform: translateY(0) rotate(0deg) scale(1);
+  transform: translate(-50%, -50%) rotate(0deg) scale(1);
 }
 
 .theme-toggle-moon {
   opacity: 0;
-  transform: translateY(12px) rotate(-32deg) scale(0.72);
+  transform: translate(-50%, calc(-50% + 12px)) rotate(-32deg) scale(0.72);
 }
 
 .theme-toggle-moon svg path:first-child,
 .theme-toggle-moon svg path:last-child {
-  fill: currentColor;
-  stroke: none;
+  fill: none;
+  stroke: currentColor;
 }
 
 .theme-toggle-fab.is-dark .theme-toggle-sun {
   opacity: 0;
-  transform: translateY(-12px) rotate(48deg) scale(0.72);
+  transform: translate(-50%, calc(-50% - 12px)) rotate(48deg) scale(0.72);
 }
 
 .theme-toggle-fab.is-dark .theme-toggle-moon {
   opacity: 1;
-  transform: translateY(0) rotate(0deg) scale(1);
+  transform: translate(-50%, -50%) rotate(0deg) scale(1);
 }
 
 .theme-toggle-fab.is-dark::before {
@@ -1891,7 +1894,12 @@ html.is-theme-changing .theme-toggle-fab:not(.is-toggling) {
   }
 
   .theme-toggle-icon {
-    width: 28px;
-    height: 28px;
+    width: 26px;
+    height: 26px;
+  }
+
+  .theme-toggle-icon svg {
+    width: 23px;
+    height: 23px;
   }
 }
