@@ -1,0 +1,22 @@
+---
+import MainLayout from '../layouts/MainLayout.astro';
+import Navbar from '../components/Navbar.astro';
+import BackgroundLayer from '../components/BackgroundLayer.astro';
+---
+
+<MainLayout title="404 · 找不到页面 | 楓念的博客" description="抱歉，这个页面不存在或已经被移走了。">
+  <BackgroundLayer />
+  <Navbar />
+
+  <main class="page-wrap not-found" id="main-content">
+    <article class="glass-panel not-found-card">
+      <p class="not-found-code" aria-hidden="true">404</p>
+      <h1 class="not-found-title">这个页面跑去其他次元了</h1>
+      <p class="not-found-message">链接可能已经失效，或这个页面从未存在过。试试别的入口吧。</p>
+      <div class="not-found-actions">
+        <a class="not-found-link is-primary" href="/home">回到首页</a>
+        <a class="not-found-link" href="/archive">浏览归档</a>
+      </div>
+    </article>
+  </main>
+</MainLayout>

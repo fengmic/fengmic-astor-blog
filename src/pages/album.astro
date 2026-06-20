@@ -22,7 +22,7 @@ function getAlbumThumbnailUrl(album: { thumbnailUrl?: string; imageUrl?: string 
 
 <MainLayout title="相册 | 楓念的博客" description="楓念的相册，记录生活中的美好瞬间">
   <BackgroundLayer />
-  <Navbar currentPath="/album" />
+  <Navbar />
 
   <main class="page-wrap single-column" id="main-content">
     <section
@@ -89,6 +89,16 @@ function getAlbumThumbnailUrl(album: { thumbnailUrl?: string; imageUrl?: string 
     let lazyObserver = null;
     let lazyLoaderInitialized = false;
     let resizeTimerId = 0;
+    let albumItemsCache = [];
+    let currentAlbumIndex = -1;
+
+    function refreshAlbumItemsCache() {
+      if (!(wall instanceof HTMLElement)) {
+        albumItemsCache = [];
+        return;
+      }
+      albumItemsCache = Array.from(wall.querySelectorAll('.album-item')).filter((item) => item instanceof HTMLElement);
+    }
 
     function getEffectiveColumns(configuredColumns) {
       if (window.innerWidth <= BREAKPOINT_MOBILE) return 1;
@@ -231,13 +241,31 @@ function getAlbumThumbnailUrl(album: { thumbnailUrl?: string; imageUrl?: string 
       document.body.style.overflow = 'hidden';
     }
 
+    function openModalForItem(item) {
+      if (!(item instanceof HTMLElement)) return;
+      if (!albumItemsCache.length) refreshAlbumItemsCache();
+      currentAlbumIndex = albumItemsCache.indexOf(item);
+      openModal(item.dataset.image || '', item.dataset.desc || '', item.dataset.date || '');
+    }
+
+    function stepAlbum(delta) {
+      if (!albumItemsCache.length) refreshAlbumItemsCache();
+      if (!albumItemsCache.length) return;
+      const next = (currentAlbumIndex + delta + albumItemsCache.length) % albumItemsCache.length;
+      const item = albumItemsCache[next];
+      if (!(item instanceof HTMLElement)) return;
+      currentAlbumIndex = next;
+      openModal(item.dataset.image || '', item.dataset.desc || '', item.dataset.date || '');
+    }
+
     function closeModal() {
       modal?.classList.add('hidden');
       modal?.setAttribute('aria-hidden', 'true');
       modal?.style.removeProperty('--album-preview-bg');
       document.body.style.overflow = '';
-      const lastFocused = document.querySelector('.album-item:focus-within');
-      if (lastFocused instanceof HTMLElement) lastFocused.focus();
+      const restoreTarget = albumItemsCache[currentAlbumIndex];
+      currentAlbumIndex = -1;
+      if (restoreTarget instanceof HTMLElement) restoreTarget.focus();
     }
 
     wall?.addEventListener('click', (event) => {
@@ -245,12 +273,7 @@ function getAlbumThumbnailUrl(album: { thumbnailUrl?: string; imageUrl?: string 
       if (!(target instanceof HTMLElement)) return;
       const item = target.closest('.album-item');
       if (!(item instanceof HTMLElement)) return;
-
-      const url = item.dataset.image || '';
-      const thumb = item.dataset.thumb || '';
-      const text = item.dataset.desc || '';
-      const createdAt = item.dataset.date || '';
-      openModal(url, text, createdAt);
+      openModalForItem(item);
     });
 
     // Re-layout when image dimensions are available or viewport changes.
@@ -284,10 +307,7 @@ function getAlbumThumbnailUrl(album: { thumbnailUrl?: string; imageUrl?: string 
       if (!(item instanceof HTMLElement)) return;
 
       event.preventDefault();
-      const url = item.dataset.image || '';
-      const text = item.dataset.desc || '';
-      const createdAt = item.dataset.date || '';
-      openModal(url, text, createdAt);
+      openModalForItem(item);
     });
 
     closeBtn?.addEventListener('click', () => closeModal());
@@ -298,11 +318,20 @@ function getAlbumThumbnailUrl(album: { thumbnailUrl?: string; imageUrl?: string 
       }
     });
 
-    // Keyboard: ESC to close
+    // Keyboard: ESC closes; ←/→ steps through the album.
     document.addEventListener('keydown', (event) => {
-      if (event.key === 'Escape' && modal && !modal.classList.contains('hidden')) {
+      if (!modal || modal.classList.contains('hidden')) return;
+      if (event.key === 'Escape') {
         closeModal();
+      } else if (event.key === 'ArrowLeft') {
+        event.preventDefault();
+        stepAlbum(-1);
+      } else if (event.key === 'ArrowRight') {
+        event.preventDefault();
+        stepAlbum(1);
       }
     });
+
+    refreshAlbumItemsCache();
   </script>
 </MainLayout>

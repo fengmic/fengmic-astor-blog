@@ -112,10 +112,12 @@ function maybeScrollToHash() {
   const hash = window.location.hash;
   if (!/^#archive-\d{4}-\d{2}$/.test(hash)) return;
   const target = document.getElementById(hash.slice(1));
-  if (target) {
-    // Defer to next frame so layout (panels hidden/shown) settles first.
-    requestAnimationFrame(() => target.scrollIntoView({ behavior: 'smooth', block: 'start' }));
-  }
+  if (!target) return;
+  // Defer to next frame so layout (panels hidden/shown) settles first.
+  requestAnimationFrame(() => {
+    const top = target.getBoundingClientRect().top + window.scrollY - 100;
+    window.scrollTo({ top, behavior: 'smooth' });
+  });
 }
 
 function applyState(state, { scroll = false } = {}) {

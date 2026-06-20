@@ -1,6 +1,5 @@
 ---
 import '../styles/global.css';
-import ThemeToggles from '../components/ThemeToggles.astro';
 
 interface Props {
   title: string;
@@ -91,9 +90,6 @@ const {
     <a class="skip-to-content" href="#main-content">跳到主要内容</a>
 
     <slot />
-
-    <!-- Theme toggle -->
-    <ThemeToggles />
 
     <script is:inline>
       const STORAGE_THEME = 'blog-theme';

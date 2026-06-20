@@ -8,7 +8,8 @@ const postsCollection = defineCollection({
     date: z.coerce.date(),
     tags: z.array(z.string()).default([]),
     excerpt: z.string().default(''),
-    author: z.string().default('Anonymous')
+    author: z.string().default('Anonymous'),
+    cover: z.string().optional()
   })
 });
 

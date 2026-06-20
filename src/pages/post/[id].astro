@@ -6,17 +6,25 @@ import { zhCN } from 'date-fns/locale';
 import MainLayout from '../../layouts/MainLayout.astro';
 import Navbar from '../../components/Navbar.astro';
 import BackgroundLayer from '../../components/BackgroundLayer.astro';
-import { getPostSlug, type BlogPost } from '../../utils/blog';
+import { getPostSlug, sortPostsByDate, type BlogPost } from '../../utils/blog';
 
 export async function getStaticPaths() {
-  const posts = await getCollection('posts');
-  return posts.map((post: BlogPost) => ({
+  const posts = sortPostsByDate(await getCollection('posts'));
+  return posts.map((post: BlogPost, index: number) => ({
     params: { id: getPostSlug(post) },
-    props: { post }
+    props: {
+      post,
+      prevPost: posts[index + 1] ?? null,
+      nextPost: posts[index - 1] ?? null
+    }
   }));
 }
 
-const { post } = Astro.props as { post: BlogPost };
+const { post, prevPost, nextPost } = Astro.props as {
+  post: BlogPost;
+  prevPost: BlogPost | null;
+  nextPost: BlogPost | null;
+};
 const { Content } = await render(post);
 const postUrl = new URL(`/post/${getPostSlug(post)}`, Astro.site).href;
 const postDate = format(post.data.date, 'yyyy-MM-dd');
@@ -30,7 +38,11 @@ const postDate = format(post.data.date, 'yyyy-MM-dd');
   publishedDate={postDate}
 >
   <BackgroundLayer />
-  <Navbar currentPath="" />
+  <Navbar />
+
+  <div class="reading-progress" aria-hidden="true">
+    <div class="reading-progress-fill"></div>
+  </div>
 
   <main class="page-wrap post-wrap" id="main-content">
     <article class="glass-panel post-detail" itemscope itemtype="https://schema.org/Article">
@@ -40,16 +52,56 @@ const postDate = format(post.data.date, 'yyyy-MM-dd');
         <span itemprop="author" itemscope itemtype="https://schema.org/Person">
           <span class="author-name" itemprop="name">{post.data.author}</span>
         </span>
-        <span>📅 <time datetime={postDate} itemprop="datePublished">{format(post.data.date, 'yyyy年MM月dd日', { locale: zhCN })}</time></span>
+        <span>
+          <svg class="meta-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+            <rect x="3" y="4" width="18" height="18" rx="2" />
+            <path d="M16 2v4M8 2v4M3 10h18" />
+          </svg>
+          <time datetime={postDate} itemprop="datePublished">{format(post.data.date, 'yyyy年MM月dd日', { locale: zhCN })}</time>
+        </span>
       </div>
 
       <div class="post-tags">
         {post.data.tags.map((tag: string) => <span itemprop="keywords">#{tag}</span>)}
       </div>
 
+      <details class="post-toc" open>
+        <summary class="post-toc-summary">目录</summary>
+        <ol class="post-toc-list"></ol>
+      </details>
+
       <div class="prose-zone" itemprop="articleBody">
         <Content />
       </div>
+
+      <nav class="post-nav" aria-label="文章导航">
+        {prevPost ? (
+          <a class="post-nav-link is-prev" href={`/post/${getPostSlug(prevPost)}`} rel="prev">
+            <span class="post-nav-label">← 上一篇 · 更早</span>
+            <span class="post-nav-title">{prevPost.data.title}</span>
+          </a>
+        ) : (
+          <span class="post-nav-link is-prev post-nav-placeholder" aria-hidden="true"></span>
+        )}
+        {nextPost ? (
+          <a class="post-nav-link is-next" href={`/post/${getPostSlug(nextPost)}`} rel="next">
+            <span class="post-nav-label">下一篇 · 更新 →</span>
+            <span class="post-nav-title">{nextPost.data.title}</span>
+          </a>
+        ) : (
+          <span class="post-nav-link is-next post-nav-placeholder" aria-hidden="true"></span>
+        )}
+      </nav>
     </article>
   </main>
+
+  <button class="back-to-top" type="button" aria-label="回到顶部">
+    <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+      <path d="m18 15-6-6-6 6" />
+    </svg>
+  </button>
+
+  <script>
+    import '../../scripts/post-detail.js';
+  </script>
 </MainLayout>

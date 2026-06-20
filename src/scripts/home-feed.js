@@ -57,6 +57,35 @@ function escapeHtml(text) {
     .replace(/'/g, '&#39;');
 }
 
+function renderResultBar(bar, tag, kw, visible) {
+  if (!tag && !kw) {
+    bar.innerHTML = '';
+    return;
+  }
+
+  const parts = ['<span class="filter-summary">当前筛选</span>'];
+  if (tag) {
+    parts.push(
+      `<button class="filter-chip" type="button" data-clear="tag" aria-label="清除标签筛选 ${escapeHtml(tag)}">` +
+        `#${escapeHtml(tag)}<span class="filter-chip-close" aria-hidden="true">✕</span>` +
+      `</button>`
+    );
+  }
+  if (kw) {
+    parts.push(
+      `<button class="filter-chip" type="button" data-clear="keyword" aria-label="清除关键词 ${escapeHtml(kw)}">` +
+        `&ldquo;${escapeHtml(kw)}&rdquo;<span class="filter-chip-close" aria-hidden="true">✕</span>` +
+      `</button>`
+    );
+  }
+  parts.push(`<span class="filter-count">共 ${visible} 篇</span>`);
+  if (tag && kw) {
+    parts.push(`<button class="filter-clear-all" type="button" data-clear="all">清除全部</button>`);
+  }
+
+  bar.innerHTML = parts.join('');
+}
+
 function highlightText(text, query) {
   if (!query) return escapeHtml(text);
 
@@ -219,9 +248,7 @@ function initializeFilters() {
     }
 
     if (resultBar) {
-      resultBar.textContent = selectedTag || keyword
-        ? `当前筛选：${selectedTag ? `#${selectedTag}` : ''} ${keyword ? `关键词"${keyword}"` : ''}，共 ${visible} 篇`
-        : '';
+      renderResultBar(resultBar, selectedTag, keyword, visible);
     }
 
     if (emptyTips) {
@@ -230,6 +257,35 @@ function initializeFilters() {
 
     setQueryParams(keyword, selectedTag);
   };
+
+  function clearTagState() {
+    selectedTag = '';
+    tagButtons.forEach((node) => {
+      node.classList.remove('active');
+      node.setAttribute('aria-pressed', 'false');
+    });
+  }
+
+  function clearKeywordState() {
+    keyword = '';
+    activeHighlightQuery = '';
+    lastAppliedHighlightQuery = null;
+    if (searchInput instanceof HTMLInputElement) searchInput.value = '';
+  }
+
+  if (resultBar) {
+    resultBar.addEventListener('click', (event) => {
+      const target = event.target;
+      if (!(target instanceof HTMLElement)) return;
+      const trigger = target.closest('[data-clear]');
+      if (!(trigger instanceof HTMLElement)) return;
+
+      const what = trigger.getAttribute('data-clear');
+      if (what === 'tag' || what === 'all') clearTagState();
+      if (what === 'keyword' || what === 'all') clearKeywordState();
+      scheduleRender();
+    });
+  }
 
   function scheduleRender() {
     cancelAnimationFrame(renderRafId);
@@ -360,6 +416,32 @@ function startQuoteRotation() {
     window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
   let idx = 0;
+  let isPaused = false;
+
+  function bindHoverPause(resume) {
+    const onEnter = () => {
+      if (isPaused) return;
+      isPaused = true;
+      clearQuoteTimers();
+      // Reveal the full current quote so the panel doesn't sit half-typed.
+      if (quotePanel.classList.contains('typing')) {
+        quotePanel.classList.remove('typing');
+        quotePanel.textContent = quotes[idx];
+      }
+    };
+    const onLeave = () => {
+      if (!isPaused) return;
+      isPaused = false;
+      if (quotes.length > 1) {
+        clearQuoteTimers();
+        quoteRotateTimer = window.setTimeout(resume, QUOTE_HOLD_DELAY);
+      }
+    };
+    quotePanel.addEventListener('mouseenter', onEnter);
+    quotePanel.addEventListener('mouseleave', onLeave);
+    quotePanel.addEventListener('focusin', onEnter);
+    quotePanel.addEventListener('focusout', onLeave);
+  }
 
   if (prefersReducedMotion) {
     quotePanel.classList.remove('typing');
@@ -367,6 +449,7 @@ function startQuoteRotation() {
 
     if (quotes.length > 1) {
       const rotateStatic = () => {
+        if (isPaused) return;
         quoteRotateTimer = window.setTimeout(() => {
           idx = (idx + 1) % quotes.length;
           quotePanel.textContent = quotes[idx];
@@ -374,13 +457,19 @@ function startQuoteRotation() {
         }, QUOTE_ROTATE_DELAY);
       };
       rotateStatic();
+      bindHoverPause(() => {
+        idx = (idx + 1) % quotes.length;
+        quotePanel.textContent = quotes[idx];
+        rotateStatic();
+      });
     }
     return;
   }
 
   const play = () => {
+    if (isPaused) return;
     typeQuote(quotes[idx], () => {
-      if (quotes.length <= 1) return;
+      if (quotes.length <= 1 || isPaused) return;
 
       quoteRotateTimer = window.setTimeout(() => {
         idx = (idx + 1) % quotes.length;
@@ -390,6 +479,12 @@ function startQuoteRotation() {
   };
 
   play();
+  if (quotes.length > 1) {
+    bindHoverPause(() => {
+      idx = (idx + 1) % quotes.length;
+      play();
+    });
+  }
 }
 
 const scheduleMount = window.requestIdleCallback

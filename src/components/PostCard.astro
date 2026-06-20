@@ -16,6 +16,12 @@ const dateIso = format(post.data.date, 'yyyy-MM-dd');
   data-tags={post.data.tags.join('|').toLowerCase()}
   data-search={`${post.data.title} ${post.data.excerpt} ${post.data.tags.join(' ')}`.toLowerCase()}
 >
+  {post.data.cover && (
+    <div class="post-card-cover" aria-hidden="true">
+      <img src={post.data.cover} alt="" loading="lazy" decoding="async" />
+    </div>
+  )}
+
   <h3>
     <a class="post-card-title-link" href={`/post/${postSlug}`}>{post.data.title}</a>
   </h3>
@@ -28,12 +34,15 @@ const dateIso = format(post.data.date, 'yyyy-MM-dd');
       </a>
     </span>
     <span>
-      📅
       <a
         class="post-meta-link post-meta-date"
         href={`/archive?mode=time#${monthAnchor}`}
         aria-label={`查看 ${format(post.data.date, 'yyyy 年 MM 月')} 的归档`}
       >
+        <svg class="meta-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+          <rect x="3" y="4" width="18" height="18" rx="2" />
+          <path d="M16 2v4M8 2v4M3 10h18" />
+        </svg>
         <time datetime={dateIso}>{dateLabel}</time>
       </a>
     </span>
