@@ -2,17 +2,52 @@
 import configData from '../data/config.json';
 
 const background = configData?.background;
+const imageUrl = background?.imageUrl || '';
+const opacity = background?.opacity ?? 0.3;
+const blur = background?.blur ?? 4;
+const overlay = background?.overlay !== false;
 ---
 
 {
-  background?.imageUrl && (
+  imageUrl && (
     <>
       <div
-        class="background-image"
-        style={`--bg-url:url(${background.imageUrl});--bg-opacity:${background.opacity || 0.3};--bg-blur:${background.blur || 4}px;`}
+        class="background-image background-image--placeholder"
+        data-bg-src={imageUrl}
+        style={`--bg-opacity:${opacity};--bg-blur:${blur}px;`}
         aria-hidden="true"
+        transition:persist
       ></div>
-      {background.overlay && <div class="background-overlay" aria-hidden="true"></div>}
+      {overlay && <div class="background-overlay" aria-hidden="true" transition:persist></div>}
+      <script is:inline>
+        (function () {
+          const node = document.querySelector('.background-image--placeholder');
+          if (!node) return;
+          const src = node.getAttribute('data-bg-src');
+          if (!src) return;
+          const load = () => {
+            const img = new Image();
+            img.decoding = 'async';
+            img.onload = () => {
+              if ('decode' in img) {
+                img.decode().catch(() => {}).finally(() => {
+                  node.style.setProperty('--bg-url', `url("${src}")`);
+                  node.classList.add('is-loaded');
+                });
+              } else {
+                node.style.setProperty('--bg-url', `url("${src}")`);
+                node.classList.add('is-loaded');
+              }
+            };
+            img.src = src;
+          };
+          if ('requestIdleCallback' in window) {
+            window.requestIdleCallback(load, { timeout: 2000 });
+          } else {
+            window.setTimeout(load, 200);
+          }
+        })();
+      </script>
     </>
   )
 }

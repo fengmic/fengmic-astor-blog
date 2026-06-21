@@ -1,0 +1,77 @@
+/* ========== 404 page (U8) ========== */
+.not-found {
+  display: grid;
+  place-items: center;
+  min-height: 60vh;
+}
+
+.not-found-card {
+  max-width: 520px;
+  width: 100%;
+  padding: 40px 32px;
+  text-align: center;
+  background: var(--panel-solid);
+}
+
+.not-found-code {
+  margin: 0;
+  font-family: 'Noto Serif SC', serif;
+  font-weight: 700;
+  font-size: clamp(4rem, 16vw, 7.5rem);
+  line-height: 1;
+  letter-spacing: -0.04em;
+  color: var(--accent-strong);
+  opacity: 0.92;
+}
+
+.not-found-title {
+  margin: 12px 0 8px;
+  font-family: 'Noto Serif SC', serif;
+  font-size: clamp(1.2rem, 4vw, 1.6rem);
+  font-weight: 700;
+  letter-spacing: var(--display-letter-spacing);
+  color: var(--ink);
+}
+
+.not-found-message {
+  margin: 0 0 24px;
+  color: var(--ink-soft);
+  line-height: 1.7;
+}
+
+.not-found-actions {
+  display: inline-flex;
+  gap: 12px;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+.not-found-link {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 44px;
+  padding: 0 18px;
+  border-radius: 999px;
+  border: 1px solid var(--input-border);
+  background: transparent;
+  color: var(--ink);
+  text-decoration: none;
+  font-size: 0.94rem;
+  transition: transform 0.2s ease, background 0.2s ease, color 0.2s ease, border-color 0.2s ease;
+}
+
+.not-found-link:hover {
+  transform: translateY(-1px);
+  border-color: rgba(232, 95, 149, 0.4);
+}
+
+.not-found-link.is-primary {
+  background: var(--accent-on-bg);
+  color: var(--on-accent);
+  border-color: transparent;
+}
+
+.not-found-link.is-primary:hover {
+  filter: brightness(1.05);
+}

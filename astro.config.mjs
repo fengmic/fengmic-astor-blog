@@ -1,4 +1,5 @@
 import { defineConfig } from 'astro/config';
+import sitemap from '@astrojs/sitemap';
 
 function rehypeImagePerformance() {
   return (tree) => {
@@ -22,6 +23,14 @@ function rehypeImagePerformance() {
 
 export default defineConfig({
   site: 'https://fengmic.pages.dev/',
+  redirects: {
+    '/': '/home'
+  },
+  integrations: [
+    sitemap({
+      filter: (page) => !page.includes('/404')
+    })
+  ],
   prefetch: {
     prefetchAll: false,
     defaultStrategy: 'hover'

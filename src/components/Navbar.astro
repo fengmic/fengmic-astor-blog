@@ -17,7 +17,7 @@ function isActive(href: string) {
 }
 ---
 
-<header class="navbar-wrap" role="banner">
+<header class="navbar-wrap" role="banner" transition:persist>
   <nav class="navbar glass-panel" aria-label="主导航">
     <a class="brand" href="/home" aria-label="返回首页">楓念的博客</a>
 
@@ -76,71 +76,6 @@ function isActive(href: string) {
   </nav>
 </header>
 
-<script is:inline>
-  (function initNav() {
-    function setup() {
-      const toggle = document.getElementById('nav-toggle');
-      const drawer = document.getElementById('nav-drawer');
-      const searchInput = document.getElementById('search-input');
-
-      if (toggle && drawer) {
-        const close = () => {
-          drawer.classList.remove('is-open');
-          toggle.setAttribute('aria-expanded', 'false');
-          toggle.setAttribute('aria-label', '打开菜单');
-        };
-        const open = () => {
-          drawer.classList.add('is-open');
-          toggle.setAttribute('aria-expanded', 'true');
-          toggle.setAttribute('aria-label', '关闭菜单');
-        };
-
-        toggle.addEventListener('click', (event) => {
-          event.preventDefault();
-          event.stopPropagation();
-          if (drawer.classList.contains('is-open')) close();
-          else open();
-        });
-
-        drawer.addEventListener('click', (event) => {
-          event.stopPropagation();
-        });
-
-        document.addEventListener('click', (event) => {
-          if (!drawer.classList.contains('is-open')) return;
-          const target = event.target;
-          if (target instanceof Node && (drawer.contains(target) || toggle.contains(target))) return;
-          close();
-        });
-
-        document.addEventListener('keydown', (event) => {
-          if (event.key === 'Escape' && drawer.classList.contains('is-open')) close();
-        });
-      }
-
-      document.addEventListener('keydown', (event) => {
-        if (!(searchInput instanceof HTMLInputElement)) return;
-        const active = document.activeElement;
-        const inField =
-          active instanceof HTMLInputElement ||
-          active instanceof HTMLTextAreaElement ||
-          (active instanceof HTMLElement && active.isContentEditable);
-        if (inField) return;
-
-        const isSlash = event.key === '/';
-        const isCmdK = (event.ctrlKey || event.metaKey) && event.key.toLowerCase() === 'k';
-        if (!isSlash && !isCmdK) return;
-
-        event.preventDefault();
-        searchInput.focus();
-        searchInput.select();
-      });
-    }
-
-    if (document.readyState === 'loading') {
-      document.addEventListener('DOMContentLoaded', setup, { once: true });
-    } else {
-      setup();
-    }
-  })();
+<script>
+  import '../scripts/navbar.js';
 </script>

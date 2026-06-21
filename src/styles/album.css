@@ -1,0 +1,208 @@
+/* ========== Album page ========== */
+.album-wall {
+  position: relative;
+  min-height: 1px;
+}
+
+.album-item {
+  position: absolute;
+  left: 0;
+  top: 0;
+  overflow: hidden;
+  cursor: pointer;
+  transition: transform 0.22s ease, box-shadow 0.22s ease;
+}
+
+.album-item:hover {
+  transform: translateY(-2px);
+  z-index: 2;
+  box-shadow: 0 12px 22px rgba(79, 37, 61, 0.1);
+}
+
+.album-item img {
+  width: 100%;
+  display: block;
+  aspect-ratio: 4 / 3;
+  background: rgba(255, 255, 255, 0.45);
+  transition: transform 0.5s ease;
+}
+
+.album-item:hover img {
+  transform: scale(1.04);
+}
+
+.album-item img[data-loaded="true"] {
+  aspect-ratio: auto;
+}
+
+.album-meta {
+  padding: 10px;
+}
+
+.album-meta p {
+  margin: 0;
+  color: var(--ink);
+}
+
+.album-meta time {
+  color: var(--ink-soft);
+  font-size: 0.82rem;
+}
+
+.album-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 60;
+  background: var(--modal-overlay);
+  display: grid;
+  place-items: center;
+  padding: 20px;
+  overflow: hidden;
+  isolation: isolate;
+}
+
+.album-modal::before {
+  content: '';
+  position: absolute;
+  inset: -20px;
+  background-image: var(--album-preview-bg);
+  background-size: cover;
+  background-position: center;
+  filter: blur(28px) saturate(1.15) brightness(0.72);
+  transform: scale(1.12);
+  opacity: 0.92;
+  z-index: -2;
+}
+
+.album-modal::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(circle at 50% 35%, rgba(255, 255, 255, 0.08), transparent 40%),
+    linear-gradient(180deg, rgba(14, 12, 24, 0.38), rgba(14, 12, 24, 0.54));
+  z-index: -1;
+}
+
+.album-modal-inner {
+  width: min(100vw, 1440px);
+  height: min(100vh, 1000px);
+  padding: clamp(20px, 3vw, 42px);
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+  border-color: transparent;
+  box-shadow:
+    0 24px 60px rgba(10, 8, 18, 0.18),
+    inset 0 1px 0 rgba(255, 255, 255, 0.08);
+  animation: modal-pop 0.28s cubic-bezier(0.2, 0.7, 0.2, 1) both;
+}
+
+#close-modal {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  width: 44px;
+  height: 44px;
+  border: 0;
+  border-radius: 50%;
+  cursor: pointer;
+  color: white;
+  background: #d74f88;
+  font-size: 1rem;
+  transition: transform 0.2s ease, filter 0.2s ease;
+}
+
+#close-modal:hover {
+  transform: rotate(6deg) scale(1.05);
+  filter: brightness(1.05);
+}
+
+#modal-image {
+  display: block;
+  max-width: min(96vw, 1380px);
+  max-height: min(76vh, 860px);
+  width: auto;
+  height: auto;
+  margin: 0 auto;
+  border-radius: 18px;
+  box-shadow: 0 18px 42px rgba(0, 0, 0, 0.28);
+  object-fit: contain;
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.modal-figure {
+  margin: 0;
+  width: 100%;
+  height: 100%;
+  display: grid;
+  justify-items: center;
+  align-content: center;
+  gap: clamp(16px, 2vw, 28px);
+}
+
+.modal-caption {
+  width: min(96vw, 1180px);
+  padding: 10px 20px 0;
+  text-align: center;
+}
+
+.modal-caption p {
+  margin: 0;
+  font-family: 'Noto Serif SC', 'Noto Sans SC', serif;
+  font-size: clamp(1.2rem, 2.6vw, 1.9rem);
+  letter-spacing: 0.05em;
+  line-height: 1.5;
+  color: #fff8ff;
+  text-shadow:
+    0 8px 22px rgba(19, 8, 29, 0.68),
+    0 0 28px rgba(255, 212, 236, 0.38);
+}
+
+.modal-caption time {
+  display: inline-block;
+  margin-top: 10px;
+  font-size: 0.9rem;
+  letter-spacing: 0.16em;
+  color: rgba(255, 248, 255, 0.76);
+}
+
+[data-theme="dark"] .album-modal-inner {
+  background: rgba(14, 12, 22, 0.28);
+}
+
+@keyframes modal-pop {
+  from {
+    opacity: 0;
+    transform: translateY(18px) scale(0.94);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@media (max-width: 640px) {
+  .album-modal-inner {
+    height: min(100vh, 1000px);
+    padding: 16px;
+  }
+
+  #modal-image {
+    max-width: 96vw;
+    max-height: 70vh;
+    border-radius: 14px;
+  }
+
+  .modal-caption {
+    width: 96vw;
+    padding: 8px 10px 0;
+  }
+
+  .modal-caption p {
+    font-size: clamp(1rem, 4.6vw, 1.3rem);
+    letter-spacing: 0.08em;
+  }
+}

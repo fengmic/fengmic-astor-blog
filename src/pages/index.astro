@@ -1,19 +1,5 @@
 ---
-const HOME_URL = '/home';
+// Native Astro redirect handled in astro.config.mjs (`redirects['/']`).
+// This file kept as a fallback for adapters/hosts that don't run the redirect map.
+return Astro.redirect('/home', 308);
 ---
-
-<!doctype html>
-<html lang="zh-CN">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta http-equiv="refresh" content={`0; url=${HOME_URL}`} />
-    <meta name="robots" content="noindex,follow" />
-    <link rel="canonical" href={HOME_URL} />
-    <title>楓念的博客</title>
-    <script is:inline>
-      window.location.replace('/home');
-    </script>
-  </head>
-  <body></body>
-</html>

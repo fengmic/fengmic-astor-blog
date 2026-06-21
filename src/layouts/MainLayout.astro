@@ -1,5 +1,6 @@
 ---
 import '../styles/global.css';
+import { ClientRouter } from 'astro:transitions';
 
 interface Props {
   title: string;
@@ -29,14 +30,24 @@ const {
     <meta name="description" content={description} />
 
     <script is:inline>
-      try {
-        const savedTheme = localStorage.getItem('blog-theme');
-        if (savedTheme) {
-          document.documentElement.setAttribute('data-theme', savedTheme);
-        }
-      } catch {
-        // Ignore storage access errors.
-      }
+      (function () {
+        const STORAGE_THEME = 'blog-theme';
+        const html = document.documentElement;
+        let saved = 'light';
+        try {
+          saved = localStorage.getItem(STORAGE_THEME) || 'light';
+        } catch {}
+        html.setAttribute('data-theme', saved);
+        window.__blogThemeGet = function () {
+          return html.getAttribute('data-theme') || 'light';
+        };
+        window.__blogThemeToggle = function () {
+          const next = (html.getAttribute('data-theme') || 'light') === 'light' ? 'dark' : 'light';
+          html.setAttribute('data-theme', next);
+          try { localStorage.setItem(STORAGE_THEME, next); } catch {}
+          return next;
+        };
+      })();
     </script>
 
     <!-- Open Graph -->
@@ -62,8 +73,8 @@ const {
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link rel="preconnect" href="https://s1.imagehub.cc" />
 
-    <!-- Favicon (64x64 circular PNG, base64-inlined to avoid an extra HTTP request) -->
-    <link rel="icon" type="image/png" href="data:image/png;base64,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" />
+    <!-- Favicon -->
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <link rel="apple-touch-icon" href="https://s1.imagehub.cc/images/2025/12/09/d0630008618c165c9bd3f9469d27dfc2.png" />
 
     <!-- Structured Data -->
@@ -80,8 +91,18 @@ const {
       })} />
     )}
 
-    <!-- Fonts -->
-    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;500;700&family=Noto+Serif+SC:wght@500;600;700&family=JetBrains+Mono:wght@500&display=swap" />
+    <!-- Fonts (async via media swap) -->
+    <link
+      rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;500;700&family=Noto+Serif+SC:wght@500;600;700&family=JetBrains+Mono:wght@500&display=swap"
+      media="print"
+      onload="this.media='all'"
+    />
+    <noscript>
+      <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;500;700&family=Noto+Serif+SC:wght@500;600;700&family=JetBrains+Mono:wght@500&display=swap" />
+    </noscript>
+
+    <ClientRouter />
 
     <title>{title}</title>
   </head>
@@ -90,44 +111,5 @@ const {
     <a class="skip-to-content" href="#main-content">跳到主要内容</a>
 
     <slot />
-
-    <script is:inline>
-      const STORAGE_THEME = 'blog-theme';
-
-      const html = document.documentElement;
-
-      function safeGetStorage(key, fallback = '') {
-        try {
-          const value = localStorage.getItem(key);
-          return value === null ? fallback : value;
-        } catch {
-          return fallback;
-        }
-      }
-
-      function safeSetStorage(key, value) {
-        try {
-          localStorage.setItem(key, value);
-        } catch {
-          // Ignore storage access errors.
-        }
-      }
-
-      // Apply stored theme immediately to prevent flash
-      const savedTheme = safeGetStorage(STORAGE_THEME, 'light');
-      html.setAttribute('data-theme', savedTheme);
-
-      window.__blogThemeToggle = function() {
-        const current = html.getAttribute('data-theme') || 'light';
-        const next = current === 'light' ? 'dark' : 'light';
-        html.setAttribute('data-theme', next);
-        safeSetStorage(STORAGE_THEME, next);
-        return next;
-      };
-
-      window.__blogThemeGet = function() {
-        return html.getAttribute('data-theme') || 'light';
-      };
-    </script>
   </body>
 </html>

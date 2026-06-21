@@ -12,7 +12,6 @@ interface Props {
 const { posts, quotes, currentPage, totalPages } = Astro.props as Props;
 const quote = quotes[0] || '每篇文章都应该有光。';
 const showPagination = totalPages > 1;
-const visibleSkeletonCount = Math.max(1, Math.min(posts.length || 1, 5));
 
 function pageHref(pageNumber: number) {
   return pageNumber <= 1 ? '/home' : `/home/page/${pageNumber}`;
@@ -26,21 +25,9 @@ function getPageNumbers() {
 <article class="glass-panel quote-panel" id="quote-panel" aria-live="polite">{quote}</article>
 <div class="result-bar" id="result-bar" role="status" aria-live="polite"></div>
 
-<div id="post-list" class="post-list" aria-live="polite" aria-busy="true">
-  {Array.from({ length: visibleSkeletonCount }).map(() => <article class="glass-panel post-card post-skeleton" aria-hidden="true">
-    <div class="skeleton-line skeleton-title"></div>
-    <div class="skeleton-line skeleton-body"></div>
-    <div class="skeleton-line skeleton-body short"></div>
-    <div class="skeleton-row">
-      <span></span>
-      <span></span>
-    </div>
-  </article>)}
-</div>
-
-<template id="post-list-template">
+<div id="post-list" class="post-list" aria-live="polite">
   {posts.map((post) => <PostCard post={post} />)}
-</template>
+</div>
 
 {showPagination && (
   <nav class="pagination" aria-label="文章分页">

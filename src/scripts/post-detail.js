@@ -1,8 +1,9 @@
-// Reading progress bar — scaleX driven, scoped to the article.
-(function initReadingProgress() {
+function initReadingProgress() {
   const article = document.querySelector('.post-detail');
   const fill = document.querySelector('.reading-progress-fill');
   if (!(article instanceof HTMLElement) || !(fill instanceof HTMLElement)) return;
+  if (article.dataset.progressBound === 'true') return;
+  article.dataset.progressBound = 'true';
 
   let ticking = false;
 
@@ -25,14 +26,15 @@
   document.addEventListener('scroll', schedule, { passive: true });
   window.addEventListener('resize', schedule, { passive: true });
   update();
-})();
+}
 
-// Auto TOC — generate from h2/h3 inside .prose-zone; hide block if too few.
-(function initToc() {
+function initToc() {
   const toc = document.querySelector('.post-toc');
   const list = document.querySelector('.post-toc-list');
   const prose = document.querySelector('.prose-zone');
   if (!(toc instanceof HTMLElement) || !(list instanceof HTMLElement) || !(prose instanceof HTMLElement)) return;
+  if (toc.dataset.tocBound === 'true') return;
+  toc.dataset.tocBound = 'true';
 
   const headings = [...prose.querySelectorAll('h2, h3')];
   if (headings.length < 2) {
@@ -57,10 +59,9 @@
     li.appendChild(a);
     list.appendChild(li);
   });
-})();
+}
 
-// Code copy — appends a copy button to every <pre> inside the prose zone.
-(function initCodeCopy() {
+function initCodeCopy() {
   const blocks = document.querySelectorAll('.prose-zone pre');
   if (!blocks.length) return;
 
@@ -69,6 +70,9 @@
 
   blocks.forEach((pre) => {
     if (!(pre instanceof HTMLElement)) return;
+    if (pre.dataset.copyBound === 'true') return;
+    pre.dataset.copyBound = 'true';
+
     const code = pre.querySelector('code');
     if (!code) return;
 
@@ -96,12 +100,13 @@
 
     pre.appendChild(btn);
   });
-})();
+}
 
-// Back to top — visible after a scroll threshold.
-(function initBackToTop() {
+function initBackToTop() {
   const btn = document.querySelector('.back-to-top');
   if (!(btn instanceof HTMLElement)) return;
+  if (btn.dataset.bound === 'true') return;
+  btn.dataset.bound = 'true';
 
   const THRESHOLD = 600;
   let ticking = false;
@@ -124,4 +129,14 @@
   });
 
   toggle();
-})();
+}
+
+function init() {
+  initReadingProgress();
+  initToc();
+  initCodeCopy();
+  initBackToTop();
+}
+
+init();
+document.addEventListener('astro:page-load', init);

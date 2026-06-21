@@ -18,7 +18,7 @@ const dateIso = format(post.data.date, 'yyyy-MM-dd');
 >
   {post.data.cover && (
     <div class="post-card-cover" aria-hidden="true">
-      <img src={post.data.cover} alt="" loading="lazy" decoding="async" />
+      <img src={post.data.cover} alt="" width="800" height="450" loading="lazy" decoding="async" fetchpriority="low" />
     </div>
   )}
 
