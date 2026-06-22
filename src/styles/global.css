@@ -309,17 +309,14 @@ html.is-theme-changing .theme-toggle-fab:not(.is-toggling) {
 .post-detail:focus-within::before {
   opacity: 0;
 }
-
-.sidebar,
-.widget,
-.album-item {
+ .sidebar,
+.widget {
   content-visibility: auto;
   contain-intrinsic-size: 280px;
 }
 
 .sidebar,
 .widget,
-.album-item,
 .post-card {
   contain: paint;
 }

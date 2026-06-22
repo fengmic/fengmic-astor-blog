@@ -2,12 +2,18 @@
 .album-wall {
   position: relative;
   min-height: 1px;
+  column-count: var(--album-columns, 3);
+  column-gap: var(--album-gap-x, 14px);
 }
 
 .album-item {
-  position: absolute;
-  left: 0;
-  top: 0;
+  position: relative;
+  display: inline-block;
+  width: 100%;
+  margin: 0 0 var(--album-gap-y, 14px);
+  break-inside: avoid;
+  -webkit-column-break-inside: avoid;
+  page-break-inside: avoid;
   overflow: hidden;
   cursor: pointer;
   transition: transform 0.22s ease, box-shadow 0.22s ease;
@@ -22,17 +28,14 @@
 .album-item img {
   width: 100%;
   display: block;
-  aspect-ratio: 4 / 3;
+  height: auto;
+  object-fit: contain;
   background: rgba(255, 255, 255, 0.45);
   transition: transform 0.5s ease;
 }
 
 .album-item:hover img {
   transform: scale(1.04);
-}
-
-.album-item img[data-loaded="true"] {
-  aspect-ratio: auto;
 }
 
 .album-meta {

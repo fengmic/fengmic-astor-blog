@@ -12,7 +12,6 @@ function init() {
   const desc = document.getElementById('modal-desc');
   const date = document.getElementById('modal-date');
 
-  let layoutRafId = 0;
   let lazyObserver = null;
   let lazyLoaderInitialized = false;
   let resizeTimerId = 0;
@@ -29,12 +28,15 @@ function init() {
     return configuredColumns;
   }
 
-  function scheduleMasonryLayout() {
+  function scheduleLayout(delay = 80) {
     clearTimeout(resizeTimerId);
     resizeTimerId = window.setTimeout(() => {
-      cancelAnimationFrame(layoutRafId);
-      layoutRafId = requestAnimationFrame(applyMasonryLayout);
-    }, 80);
+      const configuredColumns = Math.max(1, Number(wall.dataset.columns || 3));
+      wall.style.setProperty('--album-columns', String(getEffectiveColumns(configuredColumns)));
+      if (!lazyLoaderInitialized) {
+        initViewportLazyLoader();
+      }
+    }, delay);
   }
 
   function loadImageIfNeeded(img) {
@@ -82,62 +84,6 @@ function init() {
       items.forEach((item) => lazyObserver?.observe(item));
     } else {
       wall.querySelectorAll('img').forEach((img) => loadImageIfNeeded(img));
-    }
-
-    window.setTimeout(() => {
-      const loadedCount = wall.querySelectorAll('img[data-loaded="true"]').length;
-      if (loadedCount > 0) return;
-
-      items.slice(0, Math.min(items.length, 8)).forEach((item) => {
-        const img = item.querySelector('img');
-        loadImageIfNeeded(img);
-      });
-    }, 800);
-  }
-
-  function applyMasonryLayout() {
-    const items = Array.from(wall.querySelectorAll('.album-item')).filter((item) => item instanceof HTMLElement);
-    if (!items.length) {
-      wall.style.height = '';
-      return;
-    }
-
-    const computed = getComputedStyle(wall);
-    const configuredColumns = Math.max(1, Number(wall.dataset.columns || 3));
-    const columns = getEffectiveColumns(configuredColumns);
-    const gapX = Number.parseFloat(computed.getPropertyValue('--album-gap-x')) || 14;
-    const gapY = Number.parseFloat(computed.getPropertyValue('--album-gap-y')) || 0;
-    const containerWidth = wall.clientWidth;
-    const itemWidth = (containerWidth - gapX * (columns - 1)) / columns;
-
-    if (!(itemWidth > 0)) return;
-
-    const columnHeights = new Array(columns).fill(0);
-
-    items.forEach((item) => {
-      item.style.width = `${itemWidth}px`;
-
-      let targetColumn = 0;
-      for (let i = 1; i < columnHeights.length; i++) {
-        if (columnHeights[i] < columnHeights[targetColumn]) {
-          targetColumn = i;
-        }
-      }
-
-      const left = targetColumn * (itemWidth + gapX);
-      const top = columnHeights[targetColumn];
-
-      item.style.left = `${left}px`;
-      item.style.top = `${top}px`;
-
-      columnHeights[targetColumn] += item.offsetHeight + gapY;
-    });
-
-    const maxHeight = Math.max(...columnHeights);
-    wall.style.height = `${Math.max(0, maxHeight - gapY)}px`;
-
-    if (!lazyLoaderInitialized) {
-      initViewportLazyLoader();
     }
   }
 
@@ -197,19 +143,17 @@ function init() {
     img.addEventListener('load', () => {
       img.dataset.loaded = 'true';
       delete img.dataset.loading;
-      scheduleMasonryLayout();
     });
     img.addEventListener('error', () => {
       delete img.dataset.loading;
-      scheduleMasonryLayout();
     });
   });
 
   initViewportLazyLoader();
 
-  window.addEventListener('resize', scheduleMasonryLayout, { passive: true });
+  window.addEventListener('resize', () => scheduleLayout(80), { passive: true });
 
-  scheduleMasonryLayout();
+  scheduleLayout(0);
 
   wall.addEventListener('keydown', (event) => {
     if (!(event instanceof KeyboardEvent)) return;

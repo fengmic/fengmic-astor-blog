@@ -8,7 +8,6 @@ import configData from '../data/config.json';
 
 const albums = albumsData.albums || [];
 const albumColumns = Math.max(1, Math.floor(Number(configData?.albumLayout?.columns) || 3));
-const TRANSPARENT_PIXEL = 'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///ywAAAAAAQABAAACAUwAOw==';
 
 function getAlbumThumbnailUrl(album: { thumbnailUrl?: string; imageUrl?: string }) {
   if (album?.thumbnailUrl) return album.thumbnailUrl;
@@ -47,11 +46,12 @@ function getAlbumThumbnailUrl(album: { thumbnailUrl?: string; imageUrl?: string 
             aria-label={`图片：${album.description}`}
           >
             <img
-              src={TRANSPARENT_PIXEL}
-              data-src={getAlbumThumbnailUrl(album)}
-              data-loaded="false"
+              src={getAlbumThumbnailUrl(album)}
+              data-src={album.imageUrl}
               alt={album.description}
+              loading="lazy"
               decoding="async"
+              style="width:100%;height:auto;display:block;"
             />
             <div class="album-meta">
               <p>{album.description}</p>
